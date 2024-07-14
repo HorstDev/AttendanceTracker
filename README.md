@@ -1,4 +1,11 @@
-Инструкция по запуску для разработчиков:
-https://stackoverflow.com/questions/21076179/pkix-path-building-failed-and-unable-to-find-valid-certification-path-to-requ - опираемся на самый первый ответ:
-1. Скачиваем сертификат для АГТУ (c astu.org)
-2. Добавляем его в cacerts, выбрав необходимый JDK
+**Инструкция для разработчиков:**
+
+Для работы приложения необходимо:
+1. Скачать сертификат для АГТУ (astu.org).
+2. Добавить его в cacerts (хранилище сертификатов), выбрав необходимый JDK (21).
+3. Перезагрузить ПК/JVM.
+
+*Подробнее тут (первый ответ):*
+https://stackoverflow.com/questions/21076179/pkix-path-building-failed-and-unable-to-find-valid-certification-path-to-requ
+
+API документирован с использованием Swagger (http://localhost:8080/swagger-ui/index.html)
