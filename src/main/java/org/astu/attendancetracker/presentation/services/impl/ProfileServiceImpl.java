@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -24,16 +25,31 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Transactional
     public CompletableFuture<Void> uploadAllTeachersFromApiTable() {
+        // Преподаватели из ApiTable АГТУ
         CompletableFuture<List<ApiTableTimetableItem>> teachersFuture = scheduleFetcher.getAllApiTableItemsLikeTeachers();
+        // Преподаватели из базы данных (уже ранее загруженные)
+        List<TeacherProfile> databaseTeacherProfiles = profileRepository.findAllTeacherProfiles();
+
         return teachersFuture.thenAccept(teachersApiTable -> {
-           var teacherProfiles = new ArrayList<TeacherProfile>();
            teachersApiTable.forEach(teacherApiTable -> {
-              var teacherProfile = new TeacherProfile();
-              teacherProfile.setApiTableId(teacherApiTable.id());
-              teacherProfile.setName(teacherApiTable.name());
-              teacherProfiles.add(teacherProfile);
+
+               // Извлекаем преподавателя из БД (такого же, как в ApiTable)
+               Optional<TeacherProfile> profileInDb = databaseTeacherProfiles.stream()
+                       .filter(x -> x.getApiTableId().equals(teacherApiTable.id()))
+                       .findFirst();
+
+               // Если он есть, обновляем его имя, если нет, добавляем нового преподавателя в БД
+               if (profileInDb.isPresent()) {
+                   profileInDb.get().setName(teacherApiTable.name());
+               } else {
+                   var newTeacher = new TeacherProfile();
+                   newTeacher.setName(teacherApiTable.name());
+                   newTeacher.setApiTableId(teacherApiTable.id());
+                   databaseTeacherProfiles.add(newTeacher);
+               }
            });
-            profileRepository.saveAll(teacherProfiles);
+
+           profileRepository.saveAll(databaseTeacherProfiles);
         });
     }
 

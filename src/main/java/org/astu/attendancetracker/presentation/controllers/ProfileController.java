@@ -18,7 +18,7 @@ public class ProfileController {
         this.profileService = profileService;
     }
 
-    @Operation(summary = "Добавляет всех преподавателей АГТУ в базу данных")
+    @Operation(summary = "Загружает всех преподавателей АГТУ в базу данных")
     @ApiResponse(responseCode = "200", description = "Преподаватели успешно добавлены")
     @PostMapping("upload-all-teachers")
     public CompletableFuture<Void> uploadAllTeachers() {
