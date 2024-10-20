@@ -13,3 +13,6 @@ spring:
     properties:
       hibernate:
         format-sql: true
+  mvc:
+    async:
+      request-timeout: 1m
