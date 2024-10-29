@@ -7,6 +7,7 @@ import org.astu.attendancetracker.core.domain.Discipline;
 import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class GroupBuilderImpl implements GroupBuilder {
@@ -68,6 +69,12 @@ public class GroupBuilderImpl implements GroupBuilder {
             disciplines.forEach(discipline -> discipline.getTeacherProfiles().add(teacher));
         });
 
+        return this;
+    }
+
+    public GroupBuilder setLessons(int currentWeekNumber) {
+        // До какой даты загружаем занятия
+        LocalDateTime uploadLessonsTill = LocalDateTime.now().plusMonths(6);
         return this;
     }
 

@@ -10,6 +10,7 @@ import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.services.ScheduleService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -31,8 +32,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         return scheduleManager.getGroupSchedule(groupName);
     }
 
+    // Возвращает номер текущей недели
+    @Cacheable(value = "schedule", key = "'current-week-number'")
+    public CompletableFuture<Integer> getCurrentWeekNumber() {
+        return scheduleManager.getCurrentWeekNumber();
+    }
+
     @Transactional
-    public void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule) {
+    public void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule, int currentWeekNumber) {
         // Преподаватели, которые преподают у группы groupName
         Set<TeacherProfile> teacherProfilesInSchedule = getTeacherProfilesFromDatabaseOnGroupSchedule(apiTableGroupSchedule);
 

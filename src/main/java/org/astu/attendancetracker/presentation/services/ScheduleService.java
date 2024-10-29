@@ -7,6 +7,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ScheduleService {
     CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName);
-    void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule);
+    CompletableFuture<Integer> getCurrentWeekNumber();
+    void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule, int currentWeekNumber);
     GroupBuilder groupBuilder();
 }

@@ -1,5 +1,6 @@
 package org.astu.attendancetracker.presentation.controllers;
 
+import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
 import org.astu.attendancetracker.presentation.services.impl.ScheduleServiceImpl;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +20,13 @@ public class ScheduleController {
     @PostMapping("upload-group")
     public CompletableFuture<Void> uploadDataForGroup() {
         String groupName = "ДИПРБ-41/1";
-        return scheduleService.getApiTableGroupSchedule(groupName)
-                .thenAccept(scheduleService::uploadGroupScheduleData);
+
+        CompletableFuture<ApiTableGroupSchedule> scheduleFuture = scheduleService.getApiTableGroupSchedule(groupName);
+        CompletableFuture<Integer> currentWeekFuture = scheduleService.getCurrentWeekNumber();
+
+        return scheduleFuture.thenCombine(currentWeekFuture, (apiTableGroupSchedule, currentWeek) -> {
+            scheduleService.uploadGroupScheduleData(apiTableGroupSchedule, currentWeek);
+            return null;
+        });
     }
 }
