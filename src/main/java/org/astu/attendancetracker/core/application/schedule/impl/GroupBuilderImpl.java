@@ -1,18 +1,50 @@
 package org.astu.attendancetracker.core.application.schedule.impl;
 
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
+import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableLesson;
+import org.astu.attendancetracker.core.application.common.enums.LessonType;
 import org.astu.attendancetracker.core.application.common.exceptions.InvalidMethodOrderException;
 import org.astu.attendancetracker.core.application.schedule.GroupBuilder;
 import org.astu.attendancetracker.core.domain.Discipline;
 import org.astu.attendancetracker.core.domain.Group;
+import org.astu.attendancetracker.core.domain.Lesson;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 public class GroupBuilderImpl implements GroupBuilder {
     private Group group;
     private ApiTableGroupSchedule apiTableGroupSchedule;
+
+    private final Map<String, LessonType> lessonTypes = Map.of(
+            "laboratory", LessonType.LABORATORY,
+            "practice", LessonType.PRACTICE,
+            "lecture", LessonType.LECTURE
+    );
+
+    private final Map<Integer, LocalTime> lessonStartTimesByOrderId = Map.of(
+            0, LocalTime.of(8, 30),
+            1, LocalTime.of(10, 15),
+            2, LocalTime.of(12, 0),
+            3, LocalTime.of(14, 0),
+            4, LocalTime.of(15, 45),
+            5, LocalTime.of(17, 30),
+            6, LocalTime.of(19, 15)
+    );
+
+    private final Map<Integer, LocalTime> lessonEndTimesByOrderId = Map.of(
+            0, LocalTime.of(10, 0),
+            1, LocalTime.of(11, 45),
+            2, LocalTime.of(13, 30),
+            3, LocalTime.of(15, 30),
+            4, LocalTime.of(17, 15),
+            5, LocalTime.of(19, 0),
+            6, LocalTime.of(20, 45)
+    );
 
     public GroupBuilder setGroupSchedule(ApiTableGroupSchedule schedule) {
         this.apiTableGroupSchedule = schedule;
@@ -73,12 +105,61 @@ public class GroupBuilderImpl implements GroupBuilder {
     }
 
     public GroupBuilder setLessons(int currentWeekNumber) {
+        if (group.getDisciplines().isEmpty())
+            throw new InvalidMethodOrderException("Не были загружены дисциплины перед установкой занятий");
+
         // До какой даты загружаем занятия
-        LocalDateTime uploadLessonsTill = LocalDateTime.now().plusMonths(6);
+        LocalDate uploadLessonsTill = LocalDate.now().plusMonths(6);
+        // Занятия по дням (по dayId)
+        HashMap<Integer, List<ApiTableLesson>> lessonsByDays = apiTableGroupSchedule.getLessonsByDays();
+        // Названия дисциплин и соответствующие им дисциплины
+        Map<String, Discipline> namesAndDisciplines = getMapWithNamesAndDisciplines();
+
+        // Проходимся по датам, начиная с сегодняшней
+        for (LocalDate currentDate = LocalDate.now(); currentDate.isBefore(uploadLessonsTill); currentDate = currentDate.plusDays(1)) {
+            final LocalDate currentDateLocal = currentDate;
+            int currentDayId = getCurrentDayId(currentWeekNumber, currentDate);
+            if (currentDayId == -1)
+                continue;
+
+            List<ApiTableLesson> lessonsInCurrentDay = lessonsByDays.get(currentDayId);
+            lessonsInCurrentDay.forEach(lesson -> lesson.entries().forEach(entry -> {
+                Lesson lessonToAdd = new Lesson();
+                lessonToAdd.setLessonType(lessonTypes.get(entry.type()));
+                lessonToAdd.setAudience(entry.audience());
+                lessonToAdd.setStartDt(LocalDateTime.of(currentDateLocal, lessonStartTimesByOrderId.get(lesson.lessonOrderId())));
+                lessonToAdd.setEndDt(LocalDateTime.of(currentDateLocal, lessonEndTimesByOrderId.get(lesson.lessonOrderId())));
+
+                // Находим дисциплину с названием, как у entry, и устанавливаем дисциплине занятие
+                Discipline disciplineForLesson = namesAndDisciplines.get(entry.discipline());
+                disciplineForLesson.getLessons().add(lessonToAdd);
+                lessonToAdd.setDiscipline(disciplineForLesson);
+            }));
+        }
+
         return this;
     }
 
     public Group build() {
         return group;
+    }
+
+    // Возвращает dayId для даты (dayId из предметной области ApiTable, который предоставляет АГТУ). Для воскресенья -1
+    private int getCurrentDayId(int currentWeekNumber, LocalDate date) {
+        if (date.getDayOfWeek() == DayOfWeek.SUNDAY)
+            return -1;
+
+        return currentWeekNumber == 0
+                ? date.getDayOfWeek().getValue() - 1
+                : date.getDayOfWeek().getValue() + 5;
+    }
+
+    public Map<String, Discipline> getMapWithNamesAndDisciplines() {
+        if (group.getDisciplines().isEmpty())
+            throw new InvalidMethodOrderException("Не были загружены дисциплины");
+
+        Map<String, Discipline> namesAndDisciplines = new HashMap<>();
+        group.getDisciplines().forEach(discipline -> namesAndDisciplines.put(discipline.getName(), discipline));
+        return namesAndDisciplines;
     }
 }

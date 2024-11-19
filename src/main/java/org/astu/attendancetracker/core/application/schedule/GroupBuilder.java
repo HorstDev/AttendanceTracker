@@ -11,6 +11,7 @@ public interface GroupBuilder {
     GroupBuilder setGroup();
     GroupBuilder setDisciplines(int currentSemester);
     GroupBuilder setTeachersForDisciplines(Set<TeacherProfile> teacherProfilesInGroup);
+    GroupBuilder setLessons(int currentWeekNumber);
 
     Group build();
 }

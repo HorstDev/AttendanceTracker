@@ -48,6 +48,7 @@ public class ScheduleServiceImpl implements ScheduleService {
                 .setGroup()
                 .setDisciplines(5)
                 .setTeachersForDisciplines(teacherProfilesInSchedule)
+                .setLessons(currentWeekNumber)
                 .build();
 
         groupRepository.save(group);

@@ -21,6 +21,7 @@ public class Lesson {
     private LocalDateTime realStartDt;
     private LocalDateTime realEndDt;
     private LessonType lessonType;
+    private String audience;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "discipline_id")
