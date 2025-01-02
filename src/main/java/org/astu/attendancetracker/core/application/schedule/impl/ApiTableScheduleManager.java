@@ -31,7 +31,7 @@ public class ApiTableScheduleManager implements ScheduleManager {
     @Override
     public CompletableFuture<ApiTableGroupSchedule> getGroupSchedule(String groupName) {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://apitable.astu.org/search/get?q=ДИПРБ-41/1&t=group"))
+                .uri(URI.create("https://apitable.astu.org/search/get?q=" + groupName + "&t=group"))
                 .GET()
                 .build();
 
