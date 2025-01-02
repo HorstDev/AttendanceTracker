@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
-@RequestMapping("/api/schedule")
+@RequestMapping("/api/v1/schedule")
 public class ScheduleController {
     private final ScheduleServiceImpl scheduleService;
 
@@ -19,7 +19,7 @@ public class ScheduleController {
 
     @PostMapping("upload-group")
     public CompletableFuture<Void> uploadDataForGroup() {
-        String groupName = "ДИПРБ-41/1";
+        String groupName = "ДИПРБ-41";
 
         CompletableFuture<ApiTableGroupSchedule> scheduleFuture = scheduleService.getApiTableGroupSchedule(groupName);
         CompletableFuture<Integer> currentWeekFuture = scheduleService.getCurrentWeekNumber();
