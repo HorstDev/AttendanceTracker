@@ -3,9 +3,11 @@ package org.astu.attendancetracker.core.domain;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,25 +15,52 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-public class User {
+public class User implements UserDetails {
     @Id
     @GeneratedValue
     private UUID id;
     private String login;
-    private String passwordHash;
-    private String passwordSalt;
-    private String refreshToken;
-    private LocalDateTime tokenCreated;
-    private LocalDateTime tokenExpires;
+    private String password;
 
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Profile profile;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(                                                     // @JoinTable необходима для связей "много ко многим"
-            name = "user_roles",                                    // Имя таблицы для связи "много ко многим"
-            joinColumns = { @JoinColumn(name = "user_id") },        // Поля, которые ссылаются на текущую таблицу (users)
-            inverseJoinColumns = { @JoinColumn(name = "role_id") }  // Поля, ссылающиеся на сущность, находящуюся на другой стороне отношений
-    )
-    private List<Role> roles = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    // Возвращает привилегии пользователя
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return login;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }
