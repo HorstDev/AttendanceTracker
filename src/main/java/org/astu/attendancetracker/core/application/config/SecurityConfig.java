@@ -2,6 +2,7 @@ package org.astu.attendancetracker.core.application.config;
 
 import lombok.RequiredArgsConstructor;
 import org.astu.attendancetracker.core.application.auth.JwtAuthenticationFilter;
+import org.astu.attendancetracker.core.domain.Role;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -21,6 +22,7 @@ public class SecurityConfig {
     private final AuthenticationProvider authenticationProvider;
     private static final String[] WHITE_LIST_URL = {
             "/api/v1/auth/**",
+            "/api/v1/schedule/**",
             "/api/v1/profile/**",
             "/v2/api-docs",
             "/v3/api-docs",
@@ -33,6 +35,10 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui.html"};
 
+    private static final String[] STUDENT_LIST_URL = { };
+    private static final String[] TEACHER_LIST_URL = { };
+    private static final String[] ADMIN_LIST_URL = { };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -41,6 +47,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req -> req
                         .requestMatchers(WHITE_LIST_URL)
                         .permitAll()
+
+                        .requestMatchers(STUDENT_LIST_URL)
+                        .hasAuthority(Role.STUDENT.name())
+
+                        .requestMatchers(TEACHER_LIST_URL)
+                        .hasAuthority(Role.TEACHER.name())
+
+                        .requestMatchers(ADMIN_LIST_URL)
+                        .hasAuthority(Role.ADMIN.name())
+
                         .anyRequest()
                         .authenticated()
                 )
