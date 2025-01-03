@@ -1,8 +1,7 @@
 package org.astu.attendancetracker.core.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,12 +12,15 @@ import java.util.UUID;
 
 @Table(name = "users")
 @Entity
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User implements UserDetails {
     @Id
     @GeneratedValue
     private UUID id;
+    @Column(unique = true)
     private String login;
     private String password;
 

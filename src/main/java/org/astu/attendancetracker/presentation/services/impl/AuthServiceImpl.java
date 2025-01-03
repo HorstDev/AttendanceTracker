@@ -24,11 +24,13 @@ public class AuthServiceImpl {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        var user = new User();
-        //todo Заменить на builder потом
-        user.setLogin(request.getLogin());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.STUDENT);
+        var user = User
+                .builder()
+                .login(request.getLogin())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.STUDENT)
+                .build();
+
         userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
