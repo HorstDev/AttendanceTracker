@@ -36,4 +36,9 @@ public class TeacherProfile extends Profile {
         if (!(obj instanceof TeacherProfile other)) return false;
         return this.name.equals(other.name);
     }
+
+    @Override
+    public Role getRole() {
+        return Role.TEACHER;
+    }
 }

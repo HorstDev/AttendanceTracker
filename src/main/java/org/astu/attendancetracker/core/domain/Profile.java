@@ -19,11 +19,14 @@ public abstract class Profile {
     @GeneratedValue
     private UUID id;
     protected String name;
-    @OneToOne
+
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private User user;
 
     public Profile(String name) {
         this.name = name;
     }
+
+    public abstract Role getRole();
 }

@@ -5,18 +5,22 @@ import org.astu.attendancetracker.core.application.auth.AuthenticationResponse;
 import org.astu.attendancetracker.core.application.auth.JwtService;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.AuthenticationRequest;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.RegisterRequest;
+import org.astu.attendancetracker.core.domain.Profile;
 import org.astu.attendancetracker.core.domain.Role;
 import org.astu.attendancetracker.core.domain.User;
 import org.astu.attendancetracker.persistence.repositories.UserRepository;
+import org.astu.attendancetracker.presentation.services.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl {
+public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -35,6 +39,17 @@ public class AuthServiceImpl {
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)
+                .build();
+    }
+
+    public User getUserForProfile(Profile profile) {
+        String randomPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+
+        return User
+                .builder()
+                .login(profile.getName())
+                .password(randomPassword)
+                .role(profile.getRole())
                 .build();
     }
 
