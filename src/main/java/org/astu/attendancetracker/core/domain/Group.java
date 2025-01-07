@@ -63,4 +63,8 @@ public class Group {
             default -> false;
         };
     }
+
+    public int currentSemester(boolean isEvenSemester) {
+        return isEvenSemester ? course() * 2 : course() * 2 - 1;
+    }
 }

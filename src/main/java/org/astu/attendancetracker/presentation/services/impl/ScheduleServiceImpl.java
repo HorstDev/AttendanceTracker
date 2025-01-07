@@ -39,14 +39,14 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Transactional
-    public void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule, int currentWeekNumber) {
+    public void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule, int currentWeekNumber, boolean isEvenSemester) {
         // Преподаватели, которые преподают у группы groupName
         Set<TeacherProfile> teacherProfilesInSchedule = getTeacherProfilesFromDatabaseOnGroupSchedule(apiTableGroupSchedule);
 
         Group group = groupBuilder()
                 .setGroupSchedule(apiTableGroupSchedule)
                 .setGroup()
-                .setDisciplines(5)
+                .setDisciplines(isEvenSemester)
                 .setTeachersForDisciplines(teacherProfilesInSchedule)
                 .setLessons(currentWeekNumber)
                 .build();

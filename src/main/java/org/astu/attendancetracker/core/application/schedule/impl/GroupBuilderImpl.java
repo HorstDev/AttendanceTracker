@@ -61,10 +61,11 @@ public class GroupBuilderImpl implements GroupBuilder {
         return this;
     }
 
-    public GroupBuilder setDisciplines(int currentSemester) {
+    public GroupBuilder setDisciplines(boolean isEvenSemester) {
         if (group == null)
             throw new InvalidMethodOrderException("Группа не была установлена перед установкой дисциплин");
 
+        int currentSemester = group.currentSemester(isEvenSemester);
         var disciplines = new HashSet<Discipline>();
         apiTableGroupSchedule.lessons().forEach(lesson -> lesson.entries().forEach(entry -> {
            var discipline = new Discipline(entry.discipline(), currentSemester);
