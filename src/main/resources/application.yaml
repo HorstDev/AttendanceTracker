@@ -15,4 +15,4 @@ spring:
         format-sql: true
   mvc:
     async:
-      request-timeout: 1m
+      request-timeout: 2m
