@@ -1,5 +1,6 @@
 package org.astu.attendancetracker.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,7 @@ public class Group {
     private String name;
     private LocalDateTime lastIncreaseCourse = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
 
+    @JsonIgnore
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Discipline> disciplines;
 

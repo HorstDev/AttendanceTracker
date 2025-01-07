@@ -1,7 +1,11 @@
 package org.astu.attendancetracker.presentation.controllers;
 
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
+import org.astu.attendancetracker.core.domain.Group;
+import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.impl.ScheduleServiceImpl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,9 +17,17 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/api/v1/schedule")
 public class ScheduleController {
     private final ScheduleServiceImpl scheduleService;
+    private final GroupService groupService;
 
-    public ScheduleController(ScheduleServiceImpl scheduleService) {
+    public ScheduleController(ScheduleServiceImpl scheduleService, GroupService groupService) {
         this.scheduleService = scheduleService;
+        this.groupService = groupService;
+    }
+
+    @PostMapping("save-group")
+    public ResponseEntity<Group> saveGroup(@RequestParam String groupName) {
+        var savedGroup = groupService.saveGroup(groupName);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedGroup);
     }
 
     @PostMapping("upload-group")
