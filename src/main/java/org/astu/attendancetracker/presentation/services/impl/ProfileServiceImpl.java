@@ -3,7 +3,11 @@ package org.astu.attendancetracker.presentation.services.impl;
 import jakarta.transaction.Transactional;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableTimetableItem;
 import org.astu.attendancetracker.core.application.schedule.ScheduleManager;
+import org.astu.attendancetracker.core.domain.Group;
+import org.astu.attendancetracker.core.domain.Profile;
+import org.astu.attendancetracker.core.domain.StudentProfile;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
+import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.services.AuthService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
@@ -11,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -58,7 +63,15 @@ public class ProfileServiceImpl implements ProfileService {
         });
     }
 
+    // Возвращает всех студентов в базе данных
     public List<TeacherProfile> getAllTeachers() {
         return profileRepository.findAllTeacherProfiles();
+    }
+
+    // Добавление студента в группу
+    public StudentProfile addStudentToGroup(Group group, String studentName) {
+        StudentProfile studentProfile = new StudentProfile(group, studentName);
+        studentProfile.setUser(authService.getUserForProfile(studentProfile));
+        return profileRepository.save(studentProfile);
     }
 }
