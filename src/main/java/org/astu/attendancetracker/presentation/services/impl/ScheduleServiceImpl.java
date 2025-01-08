@@ -5,15 +5,19 @@ import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableG
 import org.astu.attendancetracker.core.application.schedule.GroupBuilder;
 import org.astu.attendancetracker.core.application.schedule.ScheduleManager;
 import org.astu.attendancetracker.core.application.schedule.impl.GroupBuilderImpl;
+import org.astu.attendancetracker.core.domain.Discipline;
 import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
+import org.astu.attendancetracker.persistence.repositories.DisciplineRepository;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.services.ScheduleService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -21,15 +25,29 @@ public class ScheduleServiceImpl implements ScheduleService {
     private final ScheduleManager scheduleManager;
     private final ProfileRepository profileRepository;
     private final GroupRepository groupRepository;
+    private final DisciplineRepository disciplineRepository;
 
-    public ScheduleServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository, GroupRepository groupRepository) {
+    public ScheduleServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
+                               GroupRepository groupRepository, DisciplineRepository disciplineRepository) {
         this.scheduleManager = scheduleFetcher;
         this.profileRepository = profileRepository;
         this.groupRepository = groupRepository;
+        this.disciplineRepository = disciplineRepository;
     }
 
     public CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName) {
         return scheduleManager.getGroupSchedule(groupName);
+    }
+
+    public Group saveGroup(String groupName) {
+        Group group = new Group();
+        group.setName(groupName);
+        return groupRepository.save(group);
+    }
+
+    public Group findGroupById(UUID groupId) {
+        return groupRepository.findById(groupId).orElseThrow(() ->
+                new IllegalArgumentException("Группа с id " +  groupId + " не найдена"));
     }
 
     // Возвращает номер текущей недели
@@ -39,19 +57,26 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Transactional
-    public void uploadGroupScheduleData(ApiTableGroupSchedule apiTableGroupSchedule, int currentWeekNumber, boolean isEvenSemester) {
+    public void uploadGroupScheduleData(Group group, ApiTableGroupSchedule apiTableGroupSchedule,
+                                        int currentWeekNumber, int currentSemester) {
+
+        List<Discipline> disciplinesWithCurrentSemester = disciplineRepository.findByGroupAndSemester(group, currentSemester);
+        if (!disciplinesWithCurrentSemester.isEmpty())
+            throw new RuntimeException("Данные о семестре уже были загружены ранее");
+
         // Преподаватели, которые преподают у группы groupName
         Set<TeacherProfile> teacherProfilesInSchedule = getTeacherProfilesFromDatabaseOnGroupSchedule(apiTableGroupSchedule);
 
-        Group group = groupBuilder()
+        // Загружаем в обновленную группу текущий семестр
+        Group updatedGroup = groupBuilder()
                 .setGroupSchedule(apiTableGroupSchedule)
-                .setGroup()
-                .setDisciplines(isEvenSemester)
+                .setGroup(group)
+                .setDisciplines(currentSemester)
                 .setTeachersForDisciplines(teacherProfilesInSchedule)
                 .setLessons(currentWeekNumber)
                 .build();
 
-        groupRepository.save(group);
+        groupRepository.save(updatedGroup);
     }
 
     public GroupBuilder groupBuilder() {

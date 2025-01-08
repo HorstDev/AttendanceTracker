@@ -9,7 +9,8 @@ import java.util.Set;
 public interface GroupBuilder {
     GroupBuilder setGroupSchedule(ApiTableGroupSchedule schedule);
     GroupBuilder setGroup();
-    GroupBuilder setDisciplines(boolean isEvenSemester);
+    GroupBuilder setGroup(Group group);
+    GroupBuilder setDisciplines(int currentSemester);
     GroupBuilder setTeachersForDisciplines(Set<TeacherProfile> teacherProfilesInGroup);
     GroupBuilder setLessons(int currentWeekNumber);
 
