@@ -11,7 +11,7 @@ import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.astu.attendancetracker.persistence.repositories.DisciplineRepository;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
-import org.astu.attendancetracker.presentation.services.ScheduleService;
+import org.astu.attendancetracker.presentation.services.GroupService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +21,14 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class ScheduleServiceImpl implements ScheduleService {
+public class GroupServiceImpl implements GroupService {
     private final ScheduleManager scheduleManager;
     private final ProfileRepository profileRepository;
     private final GroupRepository groupRepository;
     private final DisciplineRepository disciplineRepository;
 
-    public ScheduleServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
-                               GroupRepository groupRepository, DisciplineRepository disciplineRepository) {
+    public GroupServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
+                            GroupRepository groupRepository, DisciplineRepository disciplineRepository) {
         this.scheduleManager = scheduleFetcher;
         this.profileRepository = profileRepository;
         this.groupRepository = groupRepository;
@@ -39,12 +39,14 @@ public class ScheduleServiceImpl implements ScheduleService {
         return scheduleManager.getGroupSchedule(groupName);
     }
 
+    // Сохранение группы
     public Group saveGroup(String groupName) {
         Group group = new Group();
         group.setName(groupName);
         return groupRepository.save(group);
     }
 
+    // Поиск группы по идентификатору
     public Group findGroupById(UUID groupId) {
         return groupRepository.findById(groupId).orElseThrow(() ->
                 new IllegalArgumentException("Группа с id " +  groupId + " не найдена"));
@@ -56,8 +58,9 @@ public class ScheduleServiceImpl implements ScheduleService {
         return scheduleManager.getCurrentWeekNumber();
     }
 
+    // Загрузка семестра для группы (дисциплины, преподаватели, занятия и т.д.)
     @Transactional
-    public void uploadGroupScheduleData(Group group, ApiTableGroupSchedule apiTableGroupSchedule,
+    public void uploadSemesterForGroup(Group group, ApiTableGroupSchedule apiTableGroupSchedule,
                                         int currentWeekNumber, int currentSemester) {
 
         List<Discipline> disciplinesWithCurrentSemester = disciplineRepository.findByGroupAndSemester(group, currentSemester);

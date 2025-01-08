@@ -7,12 +7,12 @@ import org.astu.attendancetracker.core.domain.Group;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface ScheduleService {
+public interface GroupService {
     Group saveGroup(String groupName);
     Group findGroupById(UUID groupId);
     CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName);
     CompletableFuture<Integer> getCurrentWeekNumber();
-    void uploadGroupScheduleData(Group group, ApiTableGroupSchedule apiTableGroupSchedule,
+    void uploadSemesterForGroup(Group group, ApiTableGroupSchedule apiTableGroupSchedule,
                                  int currentWeekNumber, int currentSemester);
     GroupBuilder groupBuilder();
 }
