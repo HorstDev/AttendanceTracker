@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.astu.attendancetracker.core.application.common.enums.LessonType;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Table(name = "lessons")
@@ -26,4 +27,7 @@ public class Lesson {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "discipline_id")
     private Discipline discipline;
+
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<LessonOutcome> lessonOutcomes;
 }

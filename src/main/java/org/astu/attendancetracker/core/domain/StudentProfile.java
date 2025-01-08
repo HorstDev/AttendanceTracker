@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -15,6 +17,9 @@ public class StudentProfile extends Profile {
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "group_id")
     private Group group;
+
+    @OneToMany(mappedBy = "studentProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<LessonOutcome> lessonOutcomes;
 
     public StudentProfile(Group group, String name) {
         super(name);
