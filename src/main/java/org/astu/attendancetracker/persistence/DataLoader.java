@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -19,7 +20,12 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        userRepository.saveAll(users());
+        List<User> usersToLoad = users();
+        for (User user : usersToLoad) {
+            if (userRepository.findByLogin(user.getLogin()).isEmpty()) {
+                userRepository.save(user);
+            };
+        }
     }
 
     private List<User> users() {
