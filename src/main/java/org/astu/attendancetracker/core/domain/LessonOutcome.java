@@ -1,15 +1,16 @@
 package org.astu.attendancetracker.core.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.UUID;
 
 @Table(name = "lesson_outcomes")
 @Entity
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class LessonOutcome {
 
     @Id
