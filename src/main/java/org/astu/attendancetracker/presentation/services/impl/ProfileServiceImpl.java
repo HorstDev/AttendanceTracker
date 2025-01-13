@@ -53,10 +53,7 @@ public class ProfileServiceImpl implements ProfileService {
                if (profileInDb.isPresent()) {
                    profileInDb.get().setName(teacherApiTable.name());
                } else {
-                   var newTeacher = new TeacherProfile();
-                   newTeacher.setName(teacherApiTable.name());
-                   newTeacher.setApiTableId(teacherApiTable.id());
-                   newTeacher.setUser(authService.getUserForProfile(newTeacher));
+                   TeacherProfile newTeacher = authService.createTeacherProfile(teacherApiTable.name(), teacherApiTable.id());
                    databaseTeacherProfiles.add(newTeacher);
                }
            });
@@ -72,8 +69,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     // Добавление студента в группу
     public StudentProfile addStudentToGroup(Group group, String studentName) {
-        StudentProfile studentProfile = new StudentProfile(group, studentName);
-        studentProfile.setUser(authService.getUserForProfile(studentProfile));
+        StudentProfile studentProfile = authService.createStudentProfile(studentName, group);
         // Для каждого занятия, которое уже было начато в группе, в которую добавляется студент, добавляем статус занятия
         // (отмечаем, что его не было на этих занятиях)
         List<Lesson> startedLessons = lessonRepository.findStartedLessonsInGroup(group.getId());

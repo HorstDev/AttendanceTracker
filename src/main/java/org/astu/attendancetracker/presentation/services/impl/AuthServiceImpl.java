@@ -5,9 +5,7 @@ import org.astu.attendancetracker.core.application.auth.AuthenticationResponse;
 import org.astu.attendancetracker.core.application.auth.JwtService;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.AuthenticationRequest;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.RegisterRequest;
-import org.astu.attendancetracker.core.domain.Profile;
-import org.astu.attendancetracker.core.domain.Role;
-import org.astu.attendancetracker.core.domain.User;
+import org.astu.attendancetracker.core.domain.*;
 import org.astu.attendancetracker.persistence.repositories.UserRepository;
 import org.astu.attendancetracker.presentation.services.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    @Deprecated
     public AuthenticationResponse register(RegisterRequest request) {
         var user = User
                 .builder()
@@ -42,11 +41,24 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
+    public TeacherProfile createTeacherProfile(String name, String apiTableId) {
+        TeacherProfile teacher = new TeacherProfile(name, apiTableId);
+        teacher.setUser(getUserForProfile(teacher));
+        return teacher;
+    }
+
+    public StudentProfile createStudentProfile(String name, Group group) {
+        StudentProfile student = new StudentProfile(group, name);
+        student.setUser(getUserForProfile(student));
+        return student;
+    }
+
     public User getUserForProfile(Profile profile) {
         String randomPassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
         return User
                 .builder()
+                // todo Потом изменить установку логина, чтобы он был рандомным, т.к. если брать имя, то при одинаковых именах будет одинаковый логин и будет ошибка
                 .login(profile.getName())
                 .password(randomPassword)
                 .role(profile.getRole())

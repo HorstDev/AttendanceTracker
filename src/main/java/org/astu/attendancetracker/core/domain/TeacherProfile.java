@@ -10,6 +10,8 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class TeacherProfile extends Profile {
     private String apiTableId;
@@ -23,6 +25,7 @@ public class TeacherProfile extends Profile {
     private List<Discipline> disciplines = new ArrayList<>();
 
     public TeacherProfile(String name, String apiTableId) {
+        super(name);
         this.apiTableId = apiTableId;
     }
 
