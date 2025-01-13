@@ -15,4 +15,8 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
             "   (SELECT d.group.id FROM Discipline d WHERE d.id IN " +
             "       (SELECT l.discipline.id FROM Lesson l WHERE l.id = :lessonId))")
     List<StudentProfile> findStudentsParticipatingInLesson(UUID lessonId);
+
+    @Query("SELECT l FROM Lesson l WHERE l.discipline.group.id = :groupId AND l.isStarted")
+    List<Lesson> findStartedLessonsInGroup(UUID groupId);
+
 }

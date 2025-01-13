@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,8 +19,9 @@ public class StudentProfile extends Profile {
     @JoinColumn(name = "group_id")
     private Group group;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "studentProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<LessonOutcome> lessonOutcomes;
+    private List<LessonOutcome> lessonOutcomes = new ArrayList<>();
 
     public StudentProfile(Group group, String name) {
         super(name);
