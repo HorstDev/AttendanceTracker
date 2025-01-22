@@ -14,7 +14,9 @@ import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -94,5 +96,19 @@ public class GroupServiceImpl implements GroupService {
         if (teachersFromDb.size() != teacherNames.size())
             throw new RuntimeException("Преподаватели у группы " + schedule.name() + " отсутствуют в БД. Необходимо обновить базу данных преподавателей");
         return teachersFromDb;
+    }
+
+    @Override
+    public void uploadCurriculumForGroup(UUID groupId, MultipartFile curriculumFile) {
+        if (curriculumFile.isEmpty()) {
+            throw new RuntimeException("Файл (учебный план) пуст");
+        }
+        Group group = findGroupById(groupId);
+        try {
+            group.setCurriculumFile(curriculumFile.getBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка при чтении файла " + curriculumFile.getOriginalFilename());
+        }
+        groupRepository.save(group);
     }
 }

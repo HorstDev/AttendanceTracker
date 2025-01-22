@@ -1,15 +1,17 @@
 package org.astu.attendancetracker.presentation.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import org.apache.coyote.BadRequestException;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
 import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -40,5 +42,12 @@ public class GroupController {
             groupService.uploadSemesterForGroup(group, apiTableGroupSchedule, currentWeek, currentSemester);
             return null;
         });
+    }
+
+    @PostMapping(path = "upload-curriculum", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Добавляет учебный план для группы")
+    public ResponseEntity<Void> uploadCurriculumForGroup(@RequestParam UUID groupId, @RequestPart MultipartFile curriculumFile) {
+        groupService.uploadCurriculumForGroup(groupId, curriculumFile);
+        return ResponseEntity.ok().build();
     }
 }

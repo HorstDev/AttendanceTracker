@@ -30,6 +30,10 @@ public class Group {
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<StudentProfile> students;
 
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private byte[] curriculumFile;
+
     // Возвращает тип обучения группы
     public TypeOfGroupStudy typeOfGroupStudy() {
         int indexOfGroupType = name.indexOf('-') - 1;
