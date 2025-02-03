@@ -1,6 +1,7 @@
 package org.astu.attendancetracker.presentation.services.impl;
 
 import jakarta.transaction.Transactional;
+import org.astu.attendancetracker.core.application.CurriculumAnalyzer;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
 import org.astu.attendancetracker.core.application.schedule.GroupBuilder;
 import org.astu.attendancetracker.core.application.schedule.ScheduleManager;
@@ -99,16 +100,23 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
+    @Transactional
     public void uploadCurriculumForGroup(UUID groupId, MultipartFile curriculumFile) {
         if (curriculumFile.isEmpty()) {
             throw new RuntimeException("Файл (учебный план) пуст");
         }
         Group group = findGroupById(groupId);
+        byte[] curriculumBytes;
         try {
-            group.setCurriculumFile(curriculumFile.getBytes());
+            curriculumBytes = curriculumFile.getBytes();
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при чтении файла " + curriculumFile.getOriginalFilename());
         }
+        group.setCurriculumFile(curriculumBytes);
+
+        List<Discipline> disciplinesInCurrentSemester = disciplineRepository.findByGroupInCurrentSemester(group.getId());
+        CurriculumAnalyzer.uploadInformationForDisciplines(curriculumBytes, disciplinesInCurrentSemester);
+        disciplineRepository.saveAll(disciplinesInCurrentSemester);
         groupRepository.save(group);
     }
 }

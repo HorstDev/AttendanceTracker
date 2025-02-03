@@ -18,6 +18,14 @@ public class Discipline {
     private UUID id;
     private String name;
     private int semester;
+    // Экзамен
+    private boolean exam;
+    // Зачет
+    private boolean credit;
+    // Зачет с оценкой
+    private boolean creditWithAssessment;
+    // Курсовой проект
+    private boolean courseProject;
 
     @OneToMany(mappedBy = "discipline", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Lesson> lessons = new ArrayList<>();
