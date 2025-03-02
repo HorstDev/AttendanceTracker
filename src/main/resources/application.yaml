@@ -16,3 +16,8 @@ spring:
   mvc:
     async:
       request-timeout: 2m
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
