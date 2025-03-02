@@ -2,16 +2,15 @@ package org.astu.attendancetracker.presentation.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.astu.attendancetracker.core.application.common.viewModels.profile.UpdateProfileVm;
 import org.astu.attendancetracker.core.domain.Group;
+import org.astu.attendancetracker.core.domain.Profile;
 import org.astu.attendancetracker.core.domain.StudentProfile;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -41,5 +40,13 @@ public class ProfileController {
         Group group = groupService.findGroupById(groupId);
         StudentProfile savedStudent = profileService.addStudentToGroup(group, studentName);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
+    }
+
+    //todo потом переделать, а то без viewModels кривовато
+    @Operation(summary = "Обновление профиля")
+    @PutMapping("/{id}")
+    public ResponseEntity<Profile> updateProfile(@PathVariable UUID id, @RequestBody UpdateProfileVm updateProfileVm) {
+        Profile updatedProfile = profileService.updateProfile(id, updateProfileVm);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedProfile);
     }
 }

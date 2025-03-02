@@ -2,6 +2,7 @@ package org.astu.attendancetracker.presentation.services.impl;
 
 import jakarta.transaction.Transactional;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableTimetableItem;
+import org.astu.attendancetracker.core.application.common.viewModels.profile.UpdateProfileVm;
 import org.astu.attendancetracker.core.application.schedule.ScheduleManager;
 import org.astu.attendancetracker.core.domain.*;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
@@ -84,5 +85,17 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         return profileRepository.save(studentProfile);
+    }
+
+    public Profile getProfileById(UUID id) {
+        return profileRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Не найдено профиля с id = " + id));
+    }
+
+    public Profile updateProfile(UUID id, UpdateProfileVm updateProfileVm) {
+        Profile profileToUpdate = getProfileById(id);
+        profileToUpdate.setName(updateProfileVm.getName());
+        profileToUpdate.setEmail(updateProfileVm.getEmail());
+        return profileRepository.save(profileToUpdate);
     }
 }

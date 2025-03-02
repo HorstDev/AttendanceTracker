@@ -20,6 +20,7 @@ public abstract class Profile {
     @GeneratedValue
     private UUID id;
     protected String name;
+    protected String email;
 
     @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
