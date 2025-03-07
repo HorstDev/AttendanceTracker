@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 public interface ProfileService {
     CompletableFuture<Void> uploadAllTeachersFromApiTable();
     List<TeacherProfile> getAllTeachers();
+    List<TeacherProfile> getTeachersWithPartOfName(String partOfName);
     StudentProfile addStudentToGroup(Group group, String studentName);
     Profile getProfileById(UUID id);
     Profile updateProfile(UUID id, UpdateProfileVm updateProfileVm);

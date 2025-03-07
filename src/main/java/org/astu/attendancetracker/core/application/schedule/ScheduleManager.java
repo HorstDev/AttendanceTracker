@@ -4,6 +4,7 @@ import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableG
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableTimetableItem;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,4 +13,5 @@ public interface ScheduleManager {
     CompletableFuture<Integer> getCurrentWeekNumber();
     CompletableFuture<List<ApiTableTimetableItem>> getAllApiTableItemsLikeTeachers();
     CompletableFuture<List<TeacherProfile>> getAllTeacherProfiles();
+    CompletableFuture<HashSet<String>> getGroupsForTeacher(String teacherName);
 }

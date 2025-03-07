@@ -1,6 +1,7 @@
 package org.astu.attendancetracker.core.application.schedule.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGlobalData;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
@@ -11,10 +12,13 @@ import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,6 +30,34 @@ public class ApiTableScheduleManager implements ScheduleManager {
     public ApiTableScheduleManager(HttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
+    }
+
+    // Возвращает все названия групп, в которых преподает teacherName
+    public CompletableFuture<HashSet<String>> getGroupsForTeacher(String teacherName) {
+        String encodedTeacherName = URLEncoder.encode(teacherName, StandardCharsets.UTF_8);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://apitable.astu.org/search/get?q=" + encodedTeacherName + "&t=teacher"))
+                .GET()
+                .build();
+
+        return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    try {
+                        HashSet<String> groupNames = new HashSet<>();
+                        JsonNode root = objectMapper.readTree(response.body());
+
+                        for (JsonNode lesson: root.get("lessons"))
+                            for (JsonNode entry : lesson.get("entries"))
+                                for (JsonNode group : entry.get("groups"))
+                                    groupNames.add(group.asText());
+
+                        return groupNames;
+
+                    } catch(JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     @Override

@@ -20,7 +20,24 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+
+    private static final String[] VAADIN_WHITELIST = {
+            "/VAADIN/**",
+            "/frontend/**",
+            "/frontend-es5/**", "/frontend-es6/**",
+            "/favicon.ico",
+            "/icons/**",
+            "/images/**",
+            "/manifest.webmanifest",
+            "/sw.js",
+            "/sw-runtime-resources-precache.js"
+    };
+
     private static final String[] WHITE_LIST_URL = {
+            "/",
+            "/home",
+            "/groups",
+
             "/api/v1/auth/**",
             "/api/v1/group/**",
             "/api/v1/profile/**",
@@ -47,6 +64,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
+                        .requestMatchers(VAADIN_WHITELIST)
+                        .permitAll()
+
                         .requestMatchers(WHITE_LIST_URL)
                         .permitAll()
 

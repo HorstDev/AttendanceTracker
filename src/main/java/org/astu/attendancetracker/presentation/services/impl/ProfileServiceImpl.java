@@ -63,7 +63,12 @@ public class ProfileServiceImpl implements ProfileService {
         });
     }
 
-    // Возвращает всех студентов в базе данных
+    public List<TeacherProfile> getTeachersWithPartOfName(String partOfName) {
+        return profileRepository.findAllTeacherProfilesByPartOfName(partOfName)
+                .orElseThrow(() -> new NullPointerException("Преподавателей не найдено"));
+    }
+
+    // Возвращает всех преподавателей в базе данных
     public List<TeacherProfile> getAllTeachers() {
         return profileRepository.findAllTeacherProfiles();
     }

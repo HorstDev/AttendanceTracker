@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,15 @@ public class GroupServiceImpl implements GroupService {
 
     public CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName) {
         return scheduleManager.getGroupSchedule(groupName);
+    }
+
+    public List<Group> getAllGroups() {
+        return groupRepository.findAll();
+    }
+
+    // Возвращает все группы, в которых принимает участие преподаватель в текущем семестре
+    public CompletableFuture<HashSet<String>> getAllGroupsForTeacher(String teacherName) {
+        return scheduleManager.getGroupsForTeacher(teacherName);
     }
 
     // Сохранение группы

@@ -6,10 +6,13 @@ import org.astu.attendancetracker.core.domain.Group;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface GroupService {
+    List<Group> getAllGroups();
     Group saveGroup(String groupName);
     Group findGroupById(UUID groupId);
     CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName);
@@ -18,4 +21,5 @@ public interface GroupService {
                                  int currentWeekNumber, int currentSemester);
     GroupBuilder groupBuilder();
     void uploadCurriculumForGroup(UUID groupId, MultipartFile curriculumFile);
+    CompletableFuture<HashSet<String>> getAllGroupsForTeacher(String teacherName);
 }

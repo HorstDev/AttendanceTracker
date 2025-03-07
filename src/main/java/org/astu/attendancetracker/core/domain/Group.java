@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-@Table(name = "groups")
+@Table(name = "groups", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 @Entity
 @Getter
 @Setter
