@@ -36,14 +36,14 @@ public class JwtService {
     }
 
     // Генерация JWT без утверждений
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(CustomUserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
 
     // Генерация JWT с утверждениями
     public String generateToken(
             Map<String, Object> extraClaims,
-            UserDetails userDetails
+            CustomUserDetails userDetails
     ) {
         return Jwts
                 .builder()
@@ -56,7 +56,7 @@ public class JwtService {
     }
 
     // Проверка токена на валидность
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, CustomUserDetails userDetails) {
         final String username = extractUserLogin(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }

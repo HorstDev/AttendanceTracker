@@ -56,7 +56,9 @@ public class SecurityConfig {
 
     private static final String[] STUDENT_LIST_URL = { };
     private static final String[] TEACHER_LIST_URL = { };
-    private static final String[] ADMIN_LIST_URL = { };
+    private static final String[] ADMIN_LIST_URL = {
+            "/api/v1/demo-controller/**"
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

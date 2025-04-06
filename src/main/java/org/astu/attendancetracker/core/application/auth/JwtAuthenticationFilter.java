@@ -43,12 +43,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // Если пользователь не аутентифицирован (у каждого пользователя свой SecurityContextHolder в своем потоке)
         if (userLogin != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userLogin);
+            CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
             // Если токен валидный
-            if (jwtService.isTokenValid(jwt, userDetails)) {
+            if (jwtService.isTokenValid(jwt, customUserDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        customUserDetails,
                         null,
-                        userDetails.getAuthorities()
+                        customUserDetails.getAuthorities()
                 );
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
