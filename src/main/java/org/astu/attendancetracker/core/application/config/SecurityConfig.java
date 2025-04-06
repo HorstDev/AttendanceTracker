@@ -1,5 +1,6 @@
 package org.astu.attendancetracker.core.application.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.astu.attendancetracker.core.application.auth.JwtAuthenticationFilter;
 import org.astu.attendancetracker.core.domain.Role;
@@ -83,6 +84,18 @@ public class SecurityConfig {
 
                         .anyRequest()
                         .authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            // Возвращает 401, если пользователь не авторизован
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.getWriter().write("Unauthorized");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            // Возвращает 403, если у пользователя недостаточно прав
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.getWriter().write("Forbidden");
+                        })
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)

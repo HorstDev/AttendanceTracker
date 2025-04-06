@@ -1,5 +1,7 @@
 package org.astu.attendancetracker.core.application.auth;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,24 +41,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         jwt = authHeader.substring(7);
-        userLogin = jwtService.extractUserLogin(jwt);
-        // Если пользователь не аутентифицирован (у каждого пользователя свой SecurityContextHolder в своем потоке)
-        if (userLogin != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userLogin);
-            CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-            // Если токен валидный
-            if (jwtService.isTokenValid(jwt, customUserDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        customUserDetails,
-                        null,
-                        customUserDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        try {
+            userLogin = jwtService.extractUserLogin(jwt);
+            // Если пользователь не аутентифицирован (у каждого пользователя свой SecurityContextHolder в своем потоке)
+            if (userLogin != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userLogin);
+                CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+                // Если токен валидный
+                if (jwtService.isTokenValid(jwt, customUserDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            customUserDetails,
+                            null,
+                            customUserDetails.getAuthorities()
+                    );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+            filterChain.doFilter(request, response);
+        } catch(ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token expired");
+        } catch(JwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(e.getMessage());
         }
-        filterChain.doFilter(request, response);
     }
 }
