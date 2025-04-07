@@ -128,8 +128,11 @@ public class GroupBuilderImpl implements GroupBuilder {
         for (LocalDate currentDate = LocalDate.now(); currentDate.isBefore(uploadLessonsTill); currentDate = currentDate.plusDays(1)) {
             final LocalDate currentDateLocal = currentDate;
             int currentDayId = getCurrentDayId(currentWeekNumber, currentDate);
-            if (currentDayId == -1)
+            // Если воскресенье, меняем неделю на следующую
+            if (currentDayId == -1) {
+                currentWeekNumber = (currentWeekNumber + 1) % 2;
                 continue;
+            }
 
             List<ApiTableLesson> lessonsInCurrentDay = lessonsByDays.get(currentDayId);
             lessonsInCurrentDay.forEach(lesson -> lesson.entries().forEach(entry -> {
@@ -159,8 +162,8 @@ public class GroupBuilderImpl implements GroupBuilder {
             return -1;
 
         return currentWeekNumber == 0
-                ? date.getDayOfWeek().getValue() - 1
-                : date.getDayOfWeek().getValue() + 5;
+                ? date.getDayOfWeek().getValue() + 5
+                : date.getDayOfWeek().getValue() - 1;
     }
 
     public Map<String, Discipline> getMapWithNamesAndDisciplines() {
