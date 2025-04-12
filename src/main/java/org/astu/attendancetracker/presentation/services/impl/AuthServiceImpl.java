@@ -2,14 +2,18 @@ package org.astu.attendancetracker.presentation.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.astu.attendancetracker.core.application.auth.AuthenticationResponse;
+import org.astu.attendancetracker.core.application.auth.CustomUserDetails;
 import org.astu.attendancetracker.core.application.auth.JwtService;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.AuthenticationRequest;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.RegisterRequest;
 import org.astu.attendancetracker.core.domain.*;
 import org.astu.attendancetracker.persistence.repositories.UserRepository;
 import org.astu.attendancetracker.presentation.services.AuthService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public User getUserForProfile(Profile profile) {
-        String randomPassword = passwordEncoder.encode(UUID.randomUUID().toString());
+        String randomPassword = passwordEncoder.encode(profile.getName());
 
         return User
                 .builder()
@@ -77,5 +81,18 @@ public class AuthServiceImpl implements AuthService {
         return AuthenticationResponse.builder()
                 .token(jwtToken)
                 .build();
+    }
+
+    public UUID getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object userDetailsObj = authentication.getPrincipal();
+            if (userDetailsObj instanceof CustomUserDetails userDetails) {
+                return userDetails.getId();
+            }
+        }
+
+        throw new AccessDeniedException("Пользователь не аутентифицирован");
     }
 }

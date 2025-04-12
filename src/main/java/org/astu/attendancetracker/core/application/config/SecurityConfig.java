@@ -42,7 +42,6 @@ public class SecurityConfig {
             "/api/v1/auth/**",
             "/api/v1/group/**",
             "/api/v1/profile/**",
-            "/api/v1/lesson/**",
 
             "/v2/api-docs",
             "/v3/api-docs",
@@ -56,7 +55,9 @@ public class SecurityConfig {
             "/swagger-ui.html"};
 
     private static final String[] STUDENT_LIST_URL = { };
-    private static final String[] TEACHER_LIST_URL = { };
+    private static final String[] TEACHER_LIST_URL = {
+            "/api/v1/lesson/**",
+    };
     private static final String[] ADMIN_LIST_URL = {
             "/api/v1/demo-controller/**"
     };

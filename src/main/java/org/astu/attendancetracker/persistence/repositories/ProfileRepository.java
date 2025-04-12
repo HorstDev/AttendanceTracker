@@ -21,4 +21,7 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
     @Query("SELECT t FROM TeacherProfile t WHERE t.name IN :names")
     Set<TeacherProfile> findAllTeacherProfilesByNameIn(@Param("names") Set<String> names);
+
+    @Query("SELECT t FROM TeacherProfile t WHERE t.user.id = :userId")
+    Optional<TeacherProfile> findTeacherProfileByUserId(@Param("userId") UUID userId);
 }

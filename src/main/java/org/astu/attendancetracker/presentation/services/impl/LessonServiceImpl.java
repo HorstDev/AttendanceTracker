@@ -3,9 +3,11 @@ package org.astu.attendancetracker.presentation.services.impl;
 import org.astu.attendancetracker.core.domain.*;
 import org.astu.attendancetracker.persistence.repositories.LessonOutcomeRepository;
 import org.astu.attendancetracker.persistence.repositories.LessonRepository;
+import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.services.LessonService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -14,10 +16,12 @@ import java.util.UUID;
 public class LessonServiceImpl implements LessonService {
     private final LessonRepository lessonRepository;
     private final LessonOutcomeRepository lessonOutcomeRepository;
+    private final ProfileRepository profileRepository;
 
-    public LessonServiceImpl(LessonRepository lessonRepository, LessonOutcomeRepository lessonOutcomeRepository) {
+    public LessonServiceImpl(LessonRepository lessonRepository, LessonOutcomeRepository lessonOutcomeRepository, ProfileRepository profileRepository) {
         this.lessonRepository = lessonRepository;
         this.lessonOutcomeRepository = lessonOutcomeRepository;
+        this.profileRepository = profileRepository;
     }
 
     @Override
@@ -46,5 +50,15 @@ public class LessonServiceImpl implements LessonService {
                     .build());
         }
         lessonOutcomeRepository.saveAll(lessonOutcomes);
+    }
+
+    // todo Тут добавить ViewModel, преобразовать в нее
+    public List<Lesson> findLessonsByDayForTeacher(UUID userId, LocalDate date) {
+        // Проблема в том, что я передаю userId, а предполагается profileId
+        TeacherProfile profile = profileRepository.findTeacherProfileByUserId(userId).orElseThrow(() ->
+                new NullPointerException("Профиль преподавателя для пользователя с id = " + userId + " не найден"));
+        List<Lesson> lessons = lessonRepository.findLessonsByDateAndTeacher(profile.getId(), date);
+//        String disciplineName = lessons.getFirst().getDiscipline().getName();
+        return lessons;
     }
 }
