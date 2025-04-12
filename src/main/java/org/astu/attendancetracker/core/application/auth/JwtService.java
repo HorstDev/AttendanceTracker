@@ -35,9 +35,12 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    // Генерация JWT без утверждений
+    // Генерация JWT
     public String generateToken(CustomUserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        String roleName = userDetails.getAuthorities().iterator().next().getAuthority();
+        claims.put("role", roleName);
+        return generateToken(claims, userDetails);
     }
 
     // Генерация JWT с утверждениями
