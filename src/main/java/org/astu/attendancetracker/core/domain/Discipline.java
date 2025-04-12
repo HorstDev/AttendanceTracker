@@ -1,5 +1,6 @@
 package org.astu.attendancetracker.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,13 +28,16 @@ public class Discipline {
     // Курсовой проект
     private boolean courseProject;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "discipline", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Lesson> lessons = new ArrayList<>();
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "group_id")
     private Group group;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "disciplines", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TeacherProfile> teacherProfiles = new HashSet<>();
 

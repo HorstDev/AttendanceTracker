@@ -30,6 +30,7 @@ public class Lesson {
     private LessonType lessonType;
     private String audience;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "discipline_id")
     private Discipline discipline;
