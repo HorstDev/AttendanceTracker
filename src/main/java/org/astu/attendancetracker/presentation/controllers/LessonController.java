@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.astu.attendancetracker.core.domain.Lesson;
 import org.astu.attendancetracker.presentation.services.AuthService;
 import org.astu.attendancetracker.presentation.services.LessonService;
+import org.astu.attendancetracker.presentation.viewModels.LessonViewModel;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -28,8 +29,15 @@ public class LessonController {
 
     @Operation(description = "Доступ: преподаватели", summary = "Возвращает занятия преподавателя в определенный день")
     @GetMapping("lessons-in-day")
-    public List<Lesson> getLessonsInDay(@RequestParam LocalDate date) {
+    public List<LessonViewModel> getLessonsInDay(@RequestParam LocalDate date) {
         UUID userId = authService.getCurrentUserId();
         return lessonService.findLessonsByDayForTeacher(userId, date);
+    }
+
+    @Operation(description = "Доступ: преподаватели", summary = "Возвращает занятия преподавателя, идущие в текущий момент")
+    @GetMapping("current-lessons")
+    public List<LessonViewModel> getCurrentLessons() {
+        UUID userId = authService.getCurrentUserId();
+        return lessonService.findCurrentLessonsForTeacher(userId);
     }
 }

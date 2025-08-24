@@ -4,7 +4,9 @@ import org.astu.attendancetracker.core.domain.*;
 import org.astu.attendancetracker.persistence.repositories.LessonOutcomeRepository;
 import org.astu.attendancetracker.persistence.repositories.LessonRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
+import org.astu.attendancetracker.presentation.mappers.LessonMapper;
 import org.astu.attendancetracker.presentation.services.LessonService;
+import org.astu.attendancetracker.presentation.viewModels.LessonViewModel;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,11 +19,14 @@ public class LessonServiceImpl implements LessonService {
     private final LessonRepository lessonRepository;
     private final LessonOutcomeRepository lessonOutcomeRepository;
     private final ProfileRepository profileRepository;
+    private final LessonMapper lessonMapper;
 
-    public LessonServiceImpl(LessonRepository lessonRepository, LessonOutcomeRepository lessonOutcomeRepository, ProfileRepository profileRepository) {
+    public LessonServiceImpl(LessonRepository lessonRepository, LessonOutcomeRepository lessonOutcomeRepository,
+                             ProfileRepository profileRepository, LessonMapper lessonMapper) {
         this.lessonRepository = lessonRepository;
         this.lessonOutcomeRepository = lessonOutcomeRepository;
         this.profileRepository = profileRepository;
+        this.lessonMapper = lessonMapper;
     }
 
     @Override
@@ -36,6 +41,9 @@ public class LessonServiceImpl implements LessonService {
         Lesson lesson = findLessonById(lessonId);
         // Обновляем статус занятия
         lesson.start();
+        //todo ЗДЕСЬ НУЖНО ТАКЖЕ СОХРАНЯТЬ ОБНОВЛЕННОЕ ЗАНЯТИЕ ТАК КАК ОНО НЕ СОХРАНЯЕТСЯ, СОХРАНЯЮТСЯ ТОЛЬКО lessonOutcomes
+        //Также обернуть метод в @Transactional, чтобы все было в одной транзакции
+        //Сейчас не сделал по определенным причинам, поэтому сделать потом
 
         // Находим студентов, участвующих в данном занятии
         List<StudentProfile> studentProfiles = lessonRepository.findStudentsParticipatingInLesson(lessonId);
@@ -53,12 +61,24 @@ public class LessonServiceImpl implements LessonService {
     }
 
     // todo Тут добавить ViewModel, преобразовать в нее
-    public List<Lesson> findLessonsByDayForTeacher(UUID userId, LocalDate date) {
+    public List<LessonViewModel> findLessonsByDayForTeacher(UUID userId, LocalDate date) {
         // Проблема в том, что я передаю userId, а предполагается profileId
         TeacherProfile profile = profileRepository.findTeacherProfileByUserId(userId).orElseThrow(() ->
                 new NullPointerException("Профиль преподавателя для пользователя с id = " + userId + " не найден"));
         List<Lesson> lessons = lessonRepository.findLessonsByDateAndTeacher(profile.getId(), date);
 //        String disciplineName = lessons.getFirst().getDiscipline().getName();
-        return lessons;
+        return lessons.stream()
+                .map(lessonMapper::toViewModel)
+                .toList();
+    }
+
+    public List<LessonViewModel> findCurrentLessonsForTeacher(UUID userId) {
+        TeacherProfile profile = profileRepository.findTeacherProfileByUserId(userId).orElseThrow(() ->
+                new NullPointerException("Профиль преподавателя для пользователя с id = " + userId + " не найден"));
+        List<Lesson> lessons = lessonRepository.findCurrentLessonsForTeacher(profile.getId());
+
+        return lessons.stream()
+                .map(lessonMapper::toViewModel)
+                .toList();
     }
 }
