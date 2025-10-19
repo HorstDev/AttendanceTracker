@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.TextField;
@@ -49,9 +50,10 @@ public class GroupList extends HorizontalLayout {
         VerticalLayout layout = new VerticalLayout();
         layout.setWidth("50%");
 
+        Button buttonToUploadAllTeachers = new Button("Обновить преподавателей");
         TextField tf = new TextField("Преподаватель, чьи группы показать");
         tf.setWidth("100%");
-        Button buttonToUpload = new Button("Показать");
+        Button buttonToUpload = new Button("Показать преподавателей");
         Grid<TeacherProfile> teacherProfilesGrid = getTeacherProfilesGrid();
 
         buttonToUpload.addClickListener(buttonClickEvent -> {
@@ -59,10 +61,22 @@ public class GroupList extends HorizontalLayout {
             teacherProfilesGrid.setItems(teacherProfilesWithPartOfName);
         });
 
+        buttonToUploadAllTeachers.addClickListener(event -> {
+            UI ui = UI.getCurrent();
+
+            try {
+                profileService.uploadAllTeachersFromApiTable().join();
+                Notification.show("Данные о преподавателях обновлены", 7000, Notification.Position.BOTTOM_END);
+            } catch (Exception ex) {
+                Notification.show("Ошибка: " + ex.getMessage(), 7000, Notification.Position.BOTTOM_END);
+            }
+
+        });
+
         initTeachableGroupsGrid();
         layout.add(teachableGroups);
 
-        layout.add(tf, buttonToUpload, teacherProfilesGrid, teachableGroups);
+        layout.add(buttonToUploadAllTeachers, tf, buttonToUpload, teacherProfilesGrid, teachableGroups);
         return layout;
     }
 
