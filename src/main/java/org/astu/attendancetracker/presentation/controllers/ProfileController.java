@@ -8,6 +8,7 @@ import org.astu.attendancetracker.core.domain.Profile;
 import org.astu.attendancetracker.core.domain.StudentProfile;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
+import org.astu.attendancetracker.presentation.viewModels.StudentProfileDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,8 +35,8 @@ public class ProfileController {
     @Operation(summary = "Добавляет студента в группу")
     @ApiResponse(responseCode = "200", description = "Студент успешно добавлен в группу")
     @PostMapping("add-student")
-    public ResponseEntity<StudentProfile> addStudent(@RequestParam UUID groupId, @RequestParam String studentName) {
-        StudentProfile savedStudent = profileService.addStudentToGroup(groupId, studentName);
+    public ResponseEntity<StudentProfileDto> addStudent(@RequestParam UUID groupId, @RequestParam String studentName) {
+        StudentProfileDto savedStudent = profileService.addStudentToGroup(groupId, studentName);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
     }
 

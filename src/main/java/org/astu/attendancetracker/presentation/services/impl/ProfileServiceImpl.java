@@ -82,7 +82,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     // Добавление студента в группу
-    public StudentProfile addStudentToGroup(UUID groupId, String studentName) {
+    @Transactional
+    public StudentProfileDto addStudentToGroup(UUID groupId, String studentName) {
         Group group = groupService.findGroupById(groupId);
         StudentProfile studentProfile = authService.createStudentProfile(studentName, group);
         // Для каждого занятия, которое уже было начато в группе, в которую добавляется студент, добавляем статус занятия
@@ -98,7 +99,8 @@ public class ProfileServiceImpl implements ProfileService {
             studentProfile.getLessonOutcomes().add(lessonOutcome);
         }
 
-        return profileRepository.save(studentProfile);
+        StudentProfile profile = profileRepository.save(studentProfile);
+        return studentProfileMapper.toDto(profile);
     }
 
     public Profile getProfileById(UUID id) {

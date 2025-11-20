@@ -15,7 +15,7 @@ public interface ProfileService {
     CompletableFuture<Void> uploadAllTeachersFromApiTable();
     List<TeacherProfile> getAllTeachers();
     List<TeacherProfile> getTeachersWithPartOfName(String partOfName);
-    StudentProfile addStudentToGroup(UUID groupId, String studentName);
+    StudentProfileDto addStudentToGroup(UUID groupId, String studentName);
     Profile getProfileById(UUID id);
     Profile updateProfile(UUID id, UpdateProfileVm updateProfileVm);
     List<StudentProfileDto> getStudentProfilesByGroupId(UUID groupId);
