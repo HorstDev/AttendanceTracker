@@ -9,8 +9,11 @@ import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.LessonOutcomeRepository;
 import org.astu.attendancetracker.persistence.repositories.LessonRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
+import org.astu.attendancetracker.presentation.mappers.StudentProfileMapper;
 import org.astu.attendancetracker.presentation.services.AuthService;
+import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
+import org.astu.attendancetracker.presentation.viewModels.StudentProfileDto;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,14 +28,19 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final AuthService authService;
     private final LessonRepository lessonRepository;
+    private final GroupService groupService;
+    private final StudentProfileMapper studentProfileMapper;
 
     public ProfileServiceImpl(
             ScheduleManager scheduleFetcher, ProfileRepository teacherRepository,
-            AuthService authService, LessonRepository lessonRepository) {
+            AuthService authService, LessonRepository lessonRepository, GroupService groupService,
+            StudentProfileMapper studentProfileMapper) {
         this.scheduleFetcher = scheduleFetcher;
         this.profileRepository = teacherRepository;
         this.authService = authService;
         this.lessonRepository = lessonRepository;
+        this.groupService = groupService;
+        this.studentProfileMapper = studentProfileMapper;
     }
 
     @Transactional
@@ -74,7 +82,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     // Добавление студента в группу
-    public StudentProfile addStudentToGroup(Group group, String studentName) {
+    public StudentProfile addStudentToGroup(UUID groupId, String studentName) {
+        Group group = groupService.findGroupById(groupId);
         StudentProfile studentProfile = authService.createStudentProfile(studentName, group);
         // Для каждого занятия, которое уже было начато в группе, в которую добавляется студент, добавляем статус занятия
         // (отмечаем, что его не было на этих занятиях)
@@ -102,5 +111,10 @@ public class ProfileServiceImpl implements ProfileService {
         profileToUpdate.setName(updateProfileVm.getName());
         profileToUpdate.setEmail(updateProfileVm.getEmail());
         return profileRepository.save(profileToUpdate);
+    }
+
+    public List<StudentProfileDto> getStudentProfilesByGroupId(UUID groupId) {
+        List<StudentProfile> studentProfiles = profileRepository.findStudentProfilesByGroupId(groupId);
+        return studentProfileMapper.toDto(studentProfiles);
     }
 }

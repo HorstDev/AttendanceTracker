@@ -5,6 +5,7 @@ import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.core.domain.Profile;
 import org.astu.attendancetracker.core.domain.StudentProfile;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
+import org.astu.attendancetracker.presentation.viewModels.StudentProfileDto;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,7 +15,8 @@ public interface ProfileService {
     CompletableFuture<Void> uploadAllTeachersFromApiTable();
     List<TeacherProfile> getAllTeachers();
     List<TeacherProfile> getTeachersWithPartOfName(String partOfName);
-    StudentProfile addStudentToGroup(Group group, String studentName);
+    StudentProfile addStudentToGroup(UUID groupId, String studentName);
     Profile getProfileById(UUID id);
     Profile updateProfile(UUID id, UpdateProfileVm updateProfileVm);
+    List<StudentProfileDto> getStudentProfilesByGroupId(UUID groupId);
 }

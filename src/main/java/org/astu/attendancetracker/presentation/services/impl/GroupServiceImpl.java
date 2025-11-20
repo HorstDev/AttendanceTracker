@@ -12,16 +12,16 @@ import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.astu.attendancetracker.persistence.repositories.DisciplineRepository;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
+import org.astu.attendancetracker.presentation.mappers.GroupMapper;
 import org.astu.attendancetracker.presentation.services.GroupService;
+import org.astu.attendancetracker.presentation.viewModels.GroupDto;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -30,13 +30,16 @@ public class GroupServiceImpl implements GroupService {
     private final ProfileRepository profileRepository;
     private final GroupRepository groupRepository;
     private final DisciplineRepository disciplineRepository;
+    private final GroupMapper groupMapper;
 
     public GroupServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
-                            GroupRepository groupRepository, DisciplineRepository disciplineRepository) {
+                            GroupRepository groupRepository, DisciplineRepository disciplineRepository,
+                            GroupMapper groupMapper) {
         this.scheduleManager = scheduleFetcher;
         this.profileRepository = profileRepository;
         this.groupRepository = groupRepository;
         this.disciplineRepository = disciplineRepository;
+        this.groupMapper = groupMapper;
     }
 
     public CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName) {
@@ -128,5 +131,10 @@ public class GroupServiceImpl implements GroupService {
         CurriculumAnalyzer.uploadInformationForDisciplines(curriculumBytes, disciplinesInCurrentSemester);
         disciplineRepository.saveAll(disciplinesInCurrentSemester);
         groupRepository.save(group);
+    }
+
+    public List<GroupDto> findGroupsByPartOfName(String partOfName) {
+        List<Group> groups = groupRepository.findAllGroupsByPartOfName(partOfName);
+        return groupMapper.toDto(groups);
     }
 }

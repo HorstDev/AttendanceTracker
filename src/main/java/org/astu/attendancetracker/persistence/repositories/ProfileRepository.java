@@ -1,6 +1,7 @@
 package org.astu.attendancetracker.persistence.repositories;
 
 import org.astu.attendancetracker.core.domain.Profile;
+import org.astu.attendancetracker.core.domain.StudentProfile;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,7 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
     @Query("SELECT t FROM TeacherProfile t WHERE t.user.id = :userId")
     Optional<TeacherProfile> findTeacherProfileByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT s FROM StudentProfile s WHERE s.group.id = :groupId")
+    List<StudentProfile> findStudentProfilesByGroupId(@Param("groupId") UUID groupId);
 }

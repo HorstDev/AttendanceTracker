@@ -3,6 +3,7 @@ package org.astu.attendancetracker.presentation.services;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
 import org.astu.attendancetracker.core.application.schedule.GroupBuilder;
 import org.astu.attendancetracker.core.domain.Group;
+import org.astu.attendancetracker.presentation.viewModels.GroupDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -22,4 +23,5 @@ public interface GroupService {
     GroupBuilder groupBuilder();
     void uploadCurriculumForGroup(UUID groupId, MultipartFile curriculumFile);
     CompletableFuture<HashSet<String>> getAllGroupsForTeacher(String teacherName);
+    List<GroupDto> findGroupsByPartOfName(String partOfName);
 }

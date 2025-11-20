@@ -37,13 +37,15 @@ public class SecurityConfig {
             "/images/**",
             "/manifest.webmanifest",
             "/sw.js",
-            "/sw-runtime-resources-precache.js"
-    };
+            "/sw-runtime-resources-precache.js",
 
-    private static final String[] WHITE_LIST_URL = {
             "/",
             "/home",
             "/groups",
+            "/students",
+    };
+
+    private static final String[] WHITE_LIST_URL = {
 
             "/api/v1/auth/**",
             "/api/v1/group/**",

@@ -19,11 +19,9 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/api/v1/profile")
 public class ProfileController {
     private final ProfileService profileService;
-    private final GroupService groupService;
 
-    public ProfileController(ProfileService profileService, GroupService groupService) {
+    public ProfileController(ProfileService profileService) {
         this.profileService = profileService;
-        this.groupService = groupService;
     }
 
     @Operation(summary = "Загружает всех преподавателей АГТУ в базу данных")
@@ -37,8 +35,7 @@ public class ProfileController {
     @ApiResponse(responseCode = "200", description = "Студент успешно добавлен в группу")
     @PostMapping("add-student")
     public ResponseEntity<StudentProfile> addStudent(@RequestParam UUID groupId, @RequestParam String studentName) {
-        Group group = groupService.findGroupById(groupId);
-        StudentProfile savedStudent = profileService.addStudentToGroup(group, studentName);
+        StudentProfile savedStudent = profileService.addStudentToGroup(groupId, studentName);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedStudent);
     }
 
