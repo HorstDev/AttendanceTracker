@@ -1,5 +1,6 @@
 package org.astu.attendancetracker.presentation.services.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.astu.attendancetracker.core.application.auth.AuthenticationResponse;
 import org.astu.attendancetracker.core.application.auth.CustomUserDetails;
@@ -9,6 +10,7 @@ import org.astu.attendancetracker.core.application.common.viewModels.auth.Regist
 import org.astu.attendancetracker.core.domain.*;
 import org.astu.attendancetracker.persistence.repositories.UserRepository;
 import org.astu.attendancetracker.presentation.services.AuthService;
+import org.astu.attendancetracker.presentation.viewModels.AuthorizationDto;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -94,5 +96,14 @@ public class AuthServiceImpl implements AuthService {
         }
 
         throw new AccessDeniedException("Пользователь не аутентифицирован");
+    }
+
+    @Transactional
+    public void changeAuthorizationData(UUID profileId, AuthorizationDto authorizationDto) {
+        userRepository.updateAuthenticationData(
+                profileId,
+                authorizationDto.getLogin(),
+                passwordEncoder.encode(authorizationDto.getPassword())
+        );
     }
 }

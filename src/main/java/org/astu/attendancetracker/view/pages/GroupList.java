@@ -19,6 +19,7 @@ import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
+import org.astu.attendancetracker.presentation.viewModels.TeacherProfileDto;
 import org.astu.attendancetracker.view.layouts.AppLayoutBasic;
 
 import java.util.HashSet;
@@ -54,10 +55,10 @@ public class GroupList extends HorizontalLayout {
         TextField tf = new TextField("Преподаватель, чьи группы показать");
         tf.setWidth("100%");
         Button buttonToUpload = new Button("Показать преподавателей");
-        Grid<TeacherProfile> teacherProfilesGrid = getTeacherProfilesGrid();
+        Grid<TeacherProfileDto> teacherProfilesGrid = getTeacherProfilesGrid();
 
         buttonToUpload.addClickListener(buttonClickEvent -> {
-            List<TeacherProfile> teacherProfilesWithPartOfName = profileService.getTeachersWithPartOfName(tf.getValue());
+            List<TeacherProfileDto> teacherProfilesWithPartOfName = profileService.getTeachersWithPartOfName(tf.getValue());
             teacherProfilesGrid.setItems(teacherProfilesWithPartOfName);
         });
 
@@ -81,12 +82,12 @@ public class GroupList extends HorizontalLayout {
     }
 
     // Grid с преподавателями
-    private Grid<TeacherProfile> getTeacherProfilesGrid() {
-        Grid<TeacherProfile> grid = new Grid<>(TeacherProfile.class);
+    private Grid<TeacherProfileDto> getTeacherProfilesGrid() {
+        Grid<TeacherProfileDto> grid = new Grid<>(TeacherProfileDto.class);
         grid.setColumns();
         grid.addColumn("name").setHeader("Имена преподавателей");
         grid.asSingleSelect().addValueChangeListener(selectionEvent -> {
-            TeacherProfile teacher = selectionEvent.getValue();
+            TeacherProfileDto teacher = selectionEvent.getValue();
             CompletableFuture<HashSet<String>> groups = groupService.getAllGroupsForTeacher(teacher.getName());
             try {
                 teachableGroups.setItems(groups.get());

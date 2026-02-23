@@ -4,6 +4,7 @@ import org.astu.attendancetracker.core.application.auth.AuthenticationResponse;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.AuthenticationRequest;
 import org.astu.attendancetracker.core.application.common.viewModels.auth.RegisterRequest;
 import org.astu.attendancetracker.core.domain.*;
+import org.astu.attendancetracker.presentation.viewModels.AuthorizationDto;
 
 import java.util.UUID;
 
@@ -14,4 +15,5 @@ public interface AuthService {
     TeacherProfile createTeacherProfile(String name, String apiTableId);
     StudentProfile createStudentProfile(String name, Group group);
     UUID getCurrentUserId();
+    void changeAuthorizationData(UUID profileId, AuthorizationDto authorizationDto);
 }

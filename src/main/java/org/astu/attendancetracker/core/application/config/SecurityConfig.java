@@ -43,6 +43,7 @@ public class SecurityConfig {
             "/home",
             "/groups",
             "/students",
+            "/teachers",
     };
 
     private static final String[] WHITE_LIST_URL = {

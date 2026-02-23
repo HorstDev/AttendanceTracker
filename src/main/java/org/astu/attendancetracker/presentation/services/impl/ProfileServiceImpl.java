@@ -10,10 +10,12 @@ import org.astu.attendancetracker.persistence.repositories.LessonOutcomeReposito
 import org.astu.attendancetracker.persistence.repositories.LessonRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.mappers.StudentProfileMapper;
+import org.astu.attendancetracker.presentation.mappers.TeacherProfileMapper;
 import org.astu.attendancetracker.presentation.services.AuthService;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
 import org.astu.attendancetracker.presentation.viewModels.StudentProfileDto;
+import org.astu.attendancetracker.presentation.viewModels.TeacherProfileDto;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,17 +32,19 @@ public class ProfileServiceImpl implements ProfileService {
     private final LessonRepository lessonRepository;
     private final GroupService groupService;
     private final StudentProfileMapper studentProfileMapper;
+    private final TeacherProfileMapper teacherProfileMapper;
 
     public ProfileServiceImpl(
             ScheduleManager scheduleFetcher, ProfileRepository teacherRepository,
             AuthService authService, LessonRepository lessonRepository, GroupService groupService,
-            StudentProfileMapper studentProfileMapper) {
+            StudentProfileMapper studentProfileMapper, TeacherProfileMapper teacherProfileMapper) {
         this.scheduleFetcher = scheduleFetcher;
         this.profileRepository = teacherRepository;
         this.authService = authService;
         this.lessonRepository = lessonRepository;
         this.groupService = groupService;
         this.studentProfileMapper = studentProfileMapper;
+        this.teacherProfileMapper = teacherProfileMapper;
     }
 
     @Transactional
@@ -71,9 +75,10 @@ public class ProfileServiceImpl implements ProfileService {
         });
     }
 
-    public List<TeacherProfile> getTeachersWithPartOfName(String partOfName) {
-        return profileRepository.findAllTeacherProfilesByPartOfName(partOfName)
+    public List<TeacherProfileDto> getTeachersWithPartOfName(String partOfName) {
+        List<TeacherProfile> teacherProfiles = profileRepository.findAllTeacherProfilesByPartOfName(partOfName)
                 .orElseThrow(() -> new NullPointerException("Преподавателей не найдено"));
+        return teacherProfileMapper.toDto(teacherProfiles);
     }
 
     // Возвращает всех преподавателей в базе данных
