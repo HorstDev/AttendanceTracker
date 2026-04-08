@@ -3,14 +3,15 @@ package org.astu.attendancetracker.view.pages;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
 import io.jsonwebtoken.lang.Collections;
@@ -21,6 +22,7 @@ import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
 import org.astu.attendancetracker.presentation.viewModels.TeacherProfileDto;
 import org.astu.attendancetracker.view.layouts.AppLayoutBasic;
+import org.astu.attendancetracker.view.util.InMemoryMultipartFile;
 
 import java.util.HashSet;
 import java.util.List;
@@ -124,27 +126,73 @@ public class GroupList extends HorizontalLayout {
 
     private void initGroupsInDatabase() {
         groupsInDatabase.setColumns(); // Очищаем все столбцы
-        groupsInDatabase.addColumn("name").setHeader("Группы в БД");
+        groupsInDatabase.getStyle().set("--lumo-space-xs", "2px").set("--lumo-space-s", "4px");
+
+        groupsInDatabase.addColumn("name").setHeader("Группы в БД")
+                .setFlexGrow(1).setAutoWidth(true);
+
+        groupsInDatabase.addColumn(new ComponentRenderer<>(group -> {
+            boolean hasCurriculum = group.getCurriculumFile() != null;
+            Span badge = new Span(hasCurriculum ? "✓" : "X");
+            badge.getStyle()
+                    .set("color", hasCurriculum ? "var(--lumo-success-color)" : "var(--lumo-secondary-text-color)")
+                    .set("font-weight", hasCurriculum ? "bold" : "normal")
+                    .set("white-space", "nowrap");
+            return badge;
+        })).setHeader("Учебный план").setFlexGrow(0).setAutoWidth(true);
+
         groupsInDatabase.setItems(groupService.getAllGroups());
-        groupsInDatabase.addColumn(new ComponentRenderer<>(group -> new Button("Загрузить семестр", e -> {
-            if (radioGroupWithSemester.getValue() == null) {
-                Notification.show("Выберите, какой сейчас семестр!");
-                return;
-            }
-            boolean isEvenSemester = radioGroupWithSemester.getValue().equals("Чётный");
 
-            try {
-                int currentSemester = group.currentSemester(isEvenSemester);
-                CompletableFuture<ApiTableGroupSchedule> scheduleFuture = groupService.getApiTableGroupSchedule(group.getName());
-                CompletableFuture<Integer> currentWeekFuture = groupService.getCurrentWeekNumber();
+        groupsInDatabase.addColumn(new ComponentRenderer<>(group -> {
+            Button semesterButton = new Button("Загрузить семестр", e -> {
+                if (radioGroupWithSemester.getValue() == null) {
+                    Notification.show("Выберите, какой сейчас семестр!");
+                    return;
+                }
+                boolean isEvenSemester = radioGroupWithSemester.getValue().equals("Чётный");
+                try {
+                    int currentSemester = group.currentSemester(isEvenSemester);
+                    CompletableFuture<ApiTableGroupSchedule> scheduleFuture = groupService.getApiTableGroupSchedule(group.getName());
+                    CompletableFuture<Integer> currentWeekFuture = groupService.getCurrentWeekNumber();
 
-                ApiTableGroupSchedule apiTableGroupSchedule = scheduleFuture.get();
-                int currentWeek = currentWeekFuture.get();
-                groupService.uploadSemesterForGroup(group, apiTableGroupSchedule, currentWeek, currentSemester);
-                Notification.show("Успешно загружен семестр №" + currentSemester + " для группы " + group.getName());
-            } catch(Exception ex) {
-                Notification.show(ex.getMessage());
+                    ApiTableGroupSchedule apiTableGroupSchedule = scheduleFuture.get();
+                    int currentWeek = currentWeekFuture.get();
+                    groupService.uploadSemesterForGroup(group, apiTableGroupSchedule, currentWeek, currentSemester);
+                    Notification.show("Успешно загружен семестр №" + currentSemester + " для группы " + group.getName());
+                } catch (Exception ex) {
+                    Notification.show(ex.getMessage());
+                }
+            });
+            semesterButton.getStyle().set("margin", "0").set("padding", "0 var(--lumo-space-s)");
+            return semesterButton;
+        })).setHeader("Семестр").setFlexGrow(0).setAutoWidth(true);
+
+        groupsInDatabase.addColumn(new ComponentRenderer<>(group -> {
+            if (group.getCurriculumFile() != null) {
+                return new Span();
             }
-        })));
+            MemoryBuffer buffer = new MemoryBuffer();
+            Upload upload = new Upload(buffer);
+            Button uploadBtn = new Button("Загрузить учебный план");
+            uploadBtn.getStyle().set("margin", "0").set("padding", "0 var(--lumo-space-s)");
+            upload.setUploadButton(uploadBtn);
+            upload.setAcceptedFileTypes(".xlsx", ".xls");
+            upload.setMaxFiles(1);
+            upload.getStyle().set("padding", "0");
+            upload.addSucceededListener(event -> {
+                try {
+                    byte[] bytes = buffer.getInputStream().readAllBytes();
+                    InMemoryMultipartFile file = new InMemoryMultipartFile(event.getFileName(), bytes);
+                    groupService.uploadCurriculumForGroup(group.getId(), file);
+                    groupsInDatabase.setItems(groupService.getAllGroups());
+                    Notification.show("Учебный план для группы " + group.getName() + " успешно загружен",
+                            5000, Notification.Position.BOTTOM_END);
+                } catch (Exception ex) {
+                    Notification.show("Ошибка загрузки учебного плана: " + ex.getMessage(),
+                            5000, Notification.Position.BOTTOM_END);
+                }
+            });
+            return upload;
+        })).setHeader("Загрузить план").setFlexGrow(0).setAutoWidth(true);
     }
 }
