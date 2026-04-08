@@ -8,10 +8,8 @@ import org.astu.attendancetracker.core.domain.Discipline;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CurriculumAnalyzer {
     // Минимально приемлемый индекс Жаккара для совмещения названий дисциплин по схожести
@@ -29,14 +27,24 @@ public class CurriculumAnalyzer {
     private static final int COLUMN_CREDIT_WITH_ASSESSMENT_SEMESTERS = 5;
     // Столбец с семестрами, в которые проводится курсовой проект
     private static final int COLUMN_COURSE_PROJECT_SEMESTERS = 6;
+    // Столбец с компетенциями в строке дисциплины
+    private static final int COLUMN_COMPETENCIES = 90;
+    // Страница с расшифровкой компетенций
+    private static final int COMPETENCY_DESCRIPTIONS_PAGE = 4;
+    // Столбец с аббревиатурами компетенций на странице расшифровки
+    private static final int COLUMN_COMPETENCY_ABBREVIATION = 1;
+    // Столбец с описаниями компетенций на странице расшифровки
+    private static final int COLUMN_COMPETENCY_DESCRIPTION = 3;
+
+    public record CompetencyData(String abbreviation, String description) {}
 
     public static void uploadInformationForDisciplines(byte[] curriculumBytes, List<Discipline> disciplines) {
 
         if (curriculumBytes == null || disciplines.isEmpty())
             throw new RuntimeException("Недостаточно данных для загрузки информации о дисциплинах");
 
-        try (ByteArrayInputStream curriculumInputStream = new ByteArrayInputStream(curriculumBytes)) {
-            Workbook workbook = new XSSFWorkbook(curriculumInputStream);
+        try (ByteArrayInputStream curriculumInputStream = new ByteArrayInputStream(curriculumBytes);
+             Workbook workbook = new XSSFWorkbook(curriculumInputStream)) {
             Sheet sheet = workbook.getSheetAt(PLAN_PAGE);
             int semester = disciplines.getFirst().getSemester();
             // Находим строки с дисциплинами текущего семестра
@@ -126,6 +134,75 @@ public class CurriculumAnalyzer {
             rowsWithDisciplines.put(discipline, relatedRow);
         }
         return rowsWithDisciplines;
+    }
+
+    // Извлекает компетенции для дисциплин из учебного плана
+    public static Map<Discipline, List<CompetencyData>> extractCompetenciesForDisciplines(
+            byte[] curriculumBytes, List<Discipline> disciplines) {
+
+        if (curriculumBytes == null || disciplines.isEmpty())
+            throw new RuntimeException("Недостаточно данных для извлечения компетенций");
+
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(curriculumBytes);
+             Workbook workbook = new XSSFWorkbook(stream)) {
+            Sheet planSheet = workbook.getSheetAt(PLAN_PAGE);
+            int semester = disciplines.getFirst().getSemester();
+
+            List<Row> rowsAtSemester = rowsWithDisciplinesAtSemester(planSheet, semester);
+            HashMap<Discipline, Row> disciplinesAndRows = relateRowsWithDisciplines(rowsAtSemester, disciplines);
+
+            // Собираем аббревиатуры компетенций по каждой дисциплине
+            Map<Discipline, List<String>> disciplineToAbbreviations = new HashMap<>();
+            Set<String> allAbbreviations = new HashSet<>();
+
+            for (Map.Entry<Discipline, Row> entry : disciplinesAndRows.entrySet()) {
+                Row row = entry.getValue();
+                if (row == null) continue;
+
+                Cell cell = row.getCell(COLUMN_COMPETENCIES);
+                if (isCellEmpty(cell)) continue;
+
+                List<String> abbreviations = Arrays.stream(cell.getStringCellValue().split(";"))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.toList());
+
+                disciplineToAbbreviations.put(entry.getKey(), abbreviations);
+                allAbbreviations.addAll(abbreviations);
+            }
+
+            // Находим описания компетенций на странице расшифровки
+            Map<String, String> abbreviationToDescription = new HashMap<>();
+            Sheet competencySheet = workbook.getSheetAt(COMPETENCY_DESCRIPTIONS_PAGE);
+
+            for (int i = 0; i <= competencySheet.getLastRowNum(); i++) {
+                Row row = competencySheet.getRow(i);
+                if (row == null) continue;
+
+                Cell abbreviationCell = row.getCell(COLUMN_COMPETENCY_ABBREVIATION);
+                if (isCellEmpty(abbreviationCell)) continue;
+
+                String abbreviation = abbreviationCell.getStringCellValue().trim();
+                if (allAbbreviations.contains(abbreviation)) {
+                    Cell descriptionCell = row.getCell(COLUMN_COMPETENCY_DESCRIPTION);
+                    String description = isCellEmpty(descriptionCell) ? "" : descriptionCell.getStringCellValue().trim();
+                    abbreviationToDescription.put(abbreviation, description);
+                }
+            }
+
+            // Строим итоговый результат: дисциплина → список CompetencyData
+            Map<Discipline, List<CompetencyData>> result = new HashMap<>();
+            for (Map.Entry<Discipline, List<String>> entry : disciplineToAbbreviations.entrySet()) {
+                List<CompetencyData> competencies = entry.getValue().stream()
+                        .map(abbr -> new CompetencyData(abbr, abbreviationToDescription.getOrDefault(abbr, "")))
+                        .collect(Collectors.toList());
+                result.put(entry.getKey(), competencies);
+            }
+
+            return result;
+        } catch (IOException e) {
+            throw new CurriculumReadException("Ошибка при чтении учебного плана");
+        }
     }
 
     // Устанавливает тип экзамена для дисциплин

@@ -41,6 +41,14 @@ public class Discipline {
     @ManyToMany(mappedBy = "disciplines", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TeacherProfile> teacherProfiles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "discipline_competency",
+            joinColumns = @JoinColumn(name = "discipline_id"),
+            inverseJoinColumns = @JoinColumn(name = "competency_id")
+    )
+    private Set<Competency> competencies = new HashSet<>();
+
     public Discipline(String name, int semester) {
         this.name = name;
         this.semester = semester;

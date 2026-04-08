@@ -9,6 +9,8 @@ import org.astu.attendancetracker.core.application.schedule.impl.GroupBuilderImp
 import org.astu.attendancetracker.core.domain.Discipline;
 import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
+import org.astu.attendancetracker.core.domain.Competency;
+import org.astu.attendancetracker.persistence.repositories.CompetencyRepository;
 import org.astu.attendancetracker.persistence.repositories.DisciplineRepository;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.Map;
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -30,15 +33,17 @@ public class GroupServiceImpl implements GroupService {
     private final ProfileRepository profileRepository;
     private final GroupRepository groupRepository;
     private final DisciplineRepository disciplineRepository;
+    private final CompetencyRepository competencyRepository;
     private final GroupMapper groupMapper;
 
     public GroupServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
                             GroupRepository groupRepository, DisciplineRepository disciplineRepository,
-                            GroupMapper groupMapper) {
+                            CompetencyRepository competencyRepository, GroupMapper groupMapper) {
         this.scheduleManager = scheduleFetcher;
         this.profileRepository = profileRepository;
         this.groupRepository = groupRepository;
         this.disciplineRepository = disciplineRepository;
+        this.competencyRepository = competencyRepository;
         this.groupMapper = groupMapper;
     }
 
@@ -129,6 +134,18 @@ public class GroupServiceImpl implements GroupService {
 
         List<Discipline> disciplinesInCurrentSemester = disciplineRepository.findByGroupInCurrentSemester(group.getId());
         CurriculumAnalyzer.uploadInformationForDisciplines(curriculumBytes, disciplinesInCurrentSemester);
+        disciplineRepository.saveAll(disciplinesInCurrentSemester);
+
+        Map<Discipline, List<CurriculumAnalyzer.CompetencyData>> competencyMap =
+                CurriculumAnalyzer.extractCompetenciesForDisciplines(curriculumBytes, disciplinesInCurrentSemester);
+        for (Map.Entry<Discipline, List<CurriculumAnalyzer.CompetencyData>> entry : competencyMap.entrySet()) {
+            Discipline discipline = entry.getKey();
+            for (CurriculumAnalyzer.CompetencyData data : entry.getValue()) {
+                Competency competency = competencyRepository.findByAbbreviation(data.abbreviation())
+                        .orElseGet(() -> competencyRepository.save(new Competency(data.abbreviation(), data.description())));
+                discipline.getCompetencies().add(competency);
+            }
+        }
         disciplineRepository.saveAll(disciplinesInCurrentSemester);
         groupRepository.save(group);
     }
