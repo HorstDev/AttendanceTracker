@@ -8,6 +8,7 @@ import org.astu.attendancetracker.presentation.mappers.LessonMapper;
 import org.astu.attendancetracker.presentation.services.LessonService;
 import org.astu.attendancetracker.presentation.viewModels.LessonViewModel;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -33,6 +34,12 @@ public class LessonServiceImpl implements LessonService {
     public Lesson findLessonById(UUID lessonId) {
         return lessonRepository.findById(lessonId).orElseThrow(() ->
                 new IllegalArgumentException("Занятие с id " + lessonId + " не найдено"));
+    }
+
+    @Override
+    @Transactional
+    public void startLessons(List<UUID> lessonId) {
+        lessonId.forEach(this::startLesson);
     }
 
     // Старт занятия
@@ -61,6 +68,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     // todo Тут добавить ViewModel, преобразовать в нее
+    @Transactional(readOnly = true)
     public List<LessonViewModel> findLessonsByDayForTeacher(UUID userId, LocalDate date) {
         // Проблема в том, что я передаю userId, а предполагается profileId
         TeacherProfile profile = profileRepository.findTeacherProfileByUserId(userId).orElseThrow(() ->
@@ -72,6 +80,7 @@ public class LessonServiceImpl implements LessonService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<LessonViewModel> findCurrentLessonsForTeacher(UUID userId) {
         TeacherProfile profile = profileRepository.findTeacherProfileByUserId(userId).orElseThrow(() ->
                 new NullPointerException("Профиль преподавателя для пользователя с id = " + userId + " не найден"));

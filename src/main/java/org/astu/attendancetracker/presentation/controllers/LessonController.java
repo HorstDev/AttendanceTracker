@@ -22,6 +22,11 @@ public class LessonController {
         this.authService = authService;
     }
 
+    @PutMapping("start-lessons")
+    public void startLessons(@RequestBody List<UUID> lessonsId) {
+        lessonService.startLessons(lessonsId);
+    }
+
     @PostMapping("start-lesson")
     public void startLesson(@RequestParam UUID lessonId) {
         lessonService.startLesson(lessonId);

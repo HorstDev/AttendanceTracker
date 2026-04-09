@@ -7,6 +7,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.Route;
@@ -69,7 +70,7 @@ public class TeachersList extends HorizontalLayout {
             dialog.setResizable(false);
 
             TextField login = new TextField("Логин");
-            TextField password = new TextField("Пароль");
+            PasswordField password = new PasswordField("Пароль");
 
             Button saveButton = new Button("Сохранить", event -> {
                 AuthorizationDto authDto = AuthorizationDto.builder()

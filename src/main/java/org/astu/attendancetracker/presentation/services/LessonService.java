@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface LessonService {
     Lesson findLessonById(UUID lessonId);
     void startLesson(UUID lessonId);
+    void startLessons(List<UUID> lessonsId);
     List<LessonViewModel> findLessonsByDayForTeacher(UUID teacherId, LocalDate date);
     List<LessonViewModel> findCurrentLessonsForTeacher(UUID userId);
 }
