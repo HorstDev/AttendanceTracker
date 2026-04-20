@@ -1,9 +1,10 @@
 package org.astu.attendancetracker.presentation.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import org.astu.attendancetracker.core.domain.Lesson;
 import org.astu.attendancetracker.presentation.services.AuthService;
 import org.astu.attendancetracker.presentation.services.LessonService;
+import org.astu.attendancetracker.presentation.viewModels.LessonUserStatusViewModel;
+import org.astu.attendancetracker.presentation.viewModels.LessonUserStatusesDataViewModel;
 import org.astu.attendancetracker.presentation.viewModels.LessonViewModel;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +24,31 @@ public class LessonController {
     }
 
     @PutMapping("start-lessons")
-    public void startLessons(@RequestBody List<UUID> lessonsId) {
-        lessonService.startLessons(lessonsId);
+    public List<LessonViewModel> startLessons(@RequestBody List<UUID> lessonsId) {
+        return lessonService.startLessons(lessonsId);
+    }
+
+    @PutMapping("stop-lessons")
+    public List<LessonViewModel> stopLessons(@RequestBody List<UUID> lessonsId) {
+        return lessonService.stopLessons(lessonsId);
+    }
+
+    @PutMapping("update-lesson-statuses")
+    public List<LessonUserStatusViewModel> updateLessonStatuses(@RequestBody List<LessonUserStatusViewModel> statuses) {
+        return lessonService.updateLessonStatuses(statuses);
+    }
+
+    @Operation(description = "Доступ: студенты", summary = "Возвращает статус студента для текущего активного занятия (для генерации QR)")
+    @GetMapping("active-lesson-status")
+    public LessonUserStatusViewModel getActiveLessonStatus() {
+        UUID userId = authService.getCurrentUserId();
+        return lessonService.getActiveLessonStatusForStudent(userId);
+    }
+
+    @Operation(description = "Доступ: преподаватели", summary = "Отмечает студента как присутствующего по QR-коду")
+    @PutMapping("check-lesson-status-visited/{statusId}")
+    public LessonUserStatusViewModel checkLessonStatusVisited(@PathVariable UUID statusId) {
+        return lessonService.markStatusVisited(statusId);
     }
 
     @PostMapping("start-lesson")
@@ -44,5 +68,12 @@ public class LessonController {
     public List<LessonViewModel> getCurrentLessons() {
         UUID userId = authService.getCurrentUserId();
         return lessonService.findCurrentLessonsForTeacher(userId);
+    }
+
+    @Operation(description = "Доступ: преподаватели", summary = "Возвращает статусы студентов для занятий, проводимых прямо сейчас")
+    @GetMapping("lessons-in-progress-user-statuses")
+    public List<LessonUserStatusesDataViewModel> getLessonUserStatusesInProgress() {
+        UUID userId = authService.getCurrentUserId();
+        return lessonService.getLessonUserStatusesInProgress(userId);
     }
 }

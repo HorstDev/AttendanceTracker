@@ -1,0 +1,148 @@
+<div class="schedule-container">
+  <div class="schedule-left-side">
+    <div class="d-flex" style="justify-content: space-between;">
+      <h5>Группа: {{group?.name}}</h5>
+      <h5>Последняя загрузка семестра: {{group?.dateTimeOfUpdateDependenciesFromServer | date: 'dd/MM/yyyy, HH:mm':'GMT'}}</h5>
+    </div>
+    <button style="margin-right: 0.5rem;" (click)="openDialog()" mat-raised-button color="primary">Загрузить семестр</button>
+    <button (click)="openDialogWithJson()" style="font-size: 12px">Загрузить семестр из JSON</button>
+
+    <!-- Студенты -->
+    <hr />
+
+    <div class="d-flex justify-content-center align-items-center mt-5">
+      <h2>Студенты:</h2>
+    </div>
+    <div class="d-flex justify-content-center align-items-center">
+      <input class="form-control" [(ngModel)]="studentNameToAdd" matInput placeholder="Имя студента">
+      <button (click)="addStudentToGroup()" class="btn btn-success">Добавить</button>
+    </div>
+    <div class="mt-3">
+        <table class="table"> 
+            <thead>
+              <tr>
+                <!-- <th style="color: #426696; border-bottom: 2px solid;">Студент</th>
+                <th style="color: #426696; border-bottom: 2px solid;"></th> -->
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let student of students">
+                <td style="color: #426696; border-bottom: 2px solid;">{{student.name}}</td>
+                <td style="color: #426696; border-bottom: 2px solid;">
+                  <button (click)="setPasswordResetLink(student.id)" style="margin-right:0.5rem;" mat-raised-button color="primary">Смена пароля</button>
+                  <button (click)="removeUser(student.id)" mat-raised-button color="warn">Удалить</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center mt-5">
+      <h2>Преподаватели:</h2>
+    </div>
+    <div class="mt-3">
+        <table class="table"> 
+            <thead>
+              <tr>
+                <!-- <th style="color: #426696; border-bottom: 2px solid;">Студент</th>
+                <th style="color: #426696; border-bottom: 2px solid;"></th> -->
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let teacher of teachers">
+                <td style="color: #426696; border-bottom: 2px solid;">{{teacher.name}}</td>
+                <td style="color: #426696; border-bottom: 2px solid;">
+                  <button (click)="setPasswordResetLink(teacher.id)" style="margin-right:0.5rem;" mat-raised-button color="primary">Смена пароля</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+
+  </div>
+
+  <div class="schedule-right-side">
+      <div class="navigation-window mb-3" style="width: 400px;">
+          <div class="navigation-window-header d-flex justify-content-center align-items-center flex-column">
+            <h5>Дисциплины</h5>
+          </div>
+          <hr />
+          <nav class="flex-column nav-items">
+            <div *ngFor="let subject of subjects; let i = index">
+              {{i + 1}}. {{subject.name}}
+            </div>
+          </nav>
+      </div>
+
+      <!-- Кураторство -->
+
+      <div class="navigation-window"  style="width: 400px;">
+        <div class="navigation-window-header d-flex justify-content-center align-items-center flex-column">
+          <h5>Кураторство</h5>
+        </div>
+        <hr />
+        <nav class="flex-column nav-items">
+          <div class="d-flex justify-content-center align-items-center flex-column">
+            <form class="example-form">
+              <mat-form-field class="example-full-width">
+                <mat-label>Выберите куратора</mat-label>
+                <input type="text"
+                       placeholder="Имя"
+                       aria-label="Преподаватель"
+                       matInput
+                       [formControl]="myControl"
+                       [matAutocomplete]="auto">
+                       <mat-autocomplete autoActiveFirstOption #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)" [displayWith]="displayFn">
+                          <mat-option *ngFor="let teacher of filteredCuratorProfiles | async;" [value]="teacher">
+                              {{ teacher.name }}
+                          </mat-option>
+                        </mat-autocomplete>
+              </mat-form-field>
+            </form>
+            <div *ngIf="curator else noCurator">
+              <h5>Куратор: {{curator.name}}</h5>
+            </div>
+            <ng-template #noCurator>
+              <h5 style="color: red">Куратор отсутствует!</h5>
+            </ng-template>
+          </div>
+        </nav>
+    </div>
+
+  </div>
+</div>
+
+<ng-template #dialogTemplate>
+  <h2 mat-dialog-title>Выберите дату начала семестра</h2>
+  <mat-form-field style="width: 100%;">
+    <mat-label>Дата</mat-label>
+    <input [(ngModel)]="selectedDate" (dateChange)="onDateChange($event)" matInput [matDatepicker]="picker">
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+  <mat-dialog-actions>
+    <button (click)="uploadDependenciesForSelectedGroup()" mat-button cdkFocusInitial>Загрузить</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #dialogTemplateJson>
+  <h2 mat-dialog-title>Выберите дату начала семестра</h2>
+  <mat-form-field style="width: 100%;">
+    <mat-label>Дата</mat-label>
+    <input [(ngModel)]="selectedDate" (dateChange)="onDateChange($event)" matInput [matDatepicker]="picker">
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+  <input (change)="onFileSelected($event)" type="file" id="fileInput" accept=".txt,.json">
+  <mat-dialog-actions>
+    <button (click)="uploadDependenciesForSelectedGroupWithJson()" mat-button cdkFocusInitial>Загрузить</button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #dialogDeleteTemplate>
+  <h2 mat-dialog-title>Вы уверены, что хотите исключить студента из группы?</h2>
+  <mat-dialog-actions>
+    <button (click)="onNoClick()" mat-button cdkFocusInitial>Отмена</button>
+    <button (click)="onYesClick()" mat-button cdkFocusInitial>Удалить</button>
+  </mat-dialog-actions>
+</ng-template>

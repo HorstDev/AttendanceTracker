@@ -150,6 +150,7 @@ public class GroupServiceImpl implements GroupService {
         groupRepository.save(group);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<GroupDto> findGroupsByPartOfName(String partOfName) {
         List<Group> groups = groupRepository.findAllGroupsByPartOfName(partOfName);
         return groupMapper.toDto(groups);

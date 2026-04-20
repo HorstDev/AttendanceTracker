@@ -1,0 +1,165 @@
+<!-- Страница с статусами студентов (когда занятие начато и проводится преподавателем прямо сейчас) -->
+<div *ngIf="someLessonIsInProgressNow() else lessonsIsNotStarted">
+    <div class="d-flex justify-content-center align-items-center flex-column">
+        <button (click)="stopLessons()" mat-raised-button color="warn">Завершить преждевременно</button>
+        <p style="font-size: 0.8rem; margin: 0; color: red"><b>время проведения: {{lessonsUserStatusesData[0].lesson.realStart | date: 'HH:mm':'GMT'}} - {{lessonsUserStatusesData[0].lesson.realEnd | date: 'HH:mm':'GMT'}}</b></p>
+    </div>
+    <mat-tab-group (selectedIndexChange)="onTabChange($event)">
+        <mat-tab label="Посещаемость">
+            <div *ngFor="let lessonUserStatuses of lessonsUserStatusesData; let i = index" class="mt-2">
+                <h5>{{lessonUserStatuses.lesson.subjectName}} ({{lessonUserStatuses.lesson.groupName}}):</h5>
+                <mat-selection-list #lessonsList style="max-width: 30rem;">
+                    <mat-list-option *ngFor="let lessonUserStatusWithUser of lessonUserStatuses.lessonUserStatusesWithUsers"
+                        [value]="lessonUserStatusWithUser" 
+                        [(selected)]="lessonUserStatusWithUser.lessonUserStatus.isVisited"
+                        (selectedChange)="updateVisitStatus($event, lessonUserStatusWithUser.lessonUserStatus)"
+                        color="primary">
+                      <p>{{lessonUserStatusWithUser.studentName}}</p>
+                      <hr style="margin: 0"/>
+                    </mat-list-option>
+                </mat-selection-list>
+            </div>
+            <div class="d-flex justify-content-center align-items-center flex-column mb-2">
+                <button class="btn btn-primary" (click)="updateLessonUserStatuses()">Сохранить</button>
+            </div>
+        </mat-tab>
+        <!-- Баллы -->
+        <mat-tab label="Баллы">
+            <div *ngFor="let lessonUserStatuses of lessonsUserStatusesData; let i = index" class="mt-2">
+                <h5>{{lessonUserStatuses.lesson.subjectName}} ({{lessonUserStatuses.lesson.groupName}}):</h5>
+
+                <table *ngIf="lessonUserStatuses.lesson.type == 'PracticeLesson' else notPractice" class="table" style="max-width: 40rem;">
+                    <tbody>
+                      <tr *ngFor="let lessonUserStatusWithUser of lessonUserStatuses.lessonUserStatusesWithUsers">
+                        <ng-container *ngIf="lessonUserStatusWithUser.lessonUserStatus.isVisited">
+                            <td style="border-bottom: 1px solid black;">{{lessonUserStatusWithUser.studentName}}</td>
+                            <td style="border-bottom: 1px solid black;">
+                              <input style="max-width: 4rem;" matInput type="number" step="0.1" [(ngModel)]="lessonUserStatusWithUser.lessonUserStatus.score">
+                            </td>
+                          </ng-container>
+                      </tr>
+                    </tbody>
+                </table>
+
+                <ng-template #notPractice>
+                    <p>Занятие не является практическим, выставление баллов невозможно!</p>
+                </ng-template>
+
+            </div>
+            <div *ngIf="startedLessonsHasPractice()" class="d-flex justify-content-center align-items-center flex-column mb-2">
+                <button class="btn btn-primary" (click)="updateLessonUserStatuses()">Сохранить</button>
+            </div>
+        </mat-tab>
+
+        <!-- <mat-tab label="QR">
+            <div class="qr-container" style="margin: 2rem 0rem">
+                <div *ngIf="selectedTabIndex === 2">
+                    <zxing-scanner (scanSuccess)="onScanSuccess($event)"></zxing-scanner>
+                </div>
+                <div class="d-flex justify-content-center align-items-center flex-column">
+                    <h1 style="color: red"><b>{{successQrScannedMessage}}</b></h1>
+                </div>
+            </div>
+        </mat-tab> -->
+    </mat-tab-group>
+</div>
+
+
+<ng-template #lessonsIsNotStarted>
+    <div *ngIf="currentLessonsIsLoading else currentLessonsIsUploaded" style="margin-top: 5rem">
+        <p><em>Загрузка занятий, проводимых в данный момент...</em></p>
+    </div>
+    <ng-template #currentLessonsIsUploaded>
+        <!-- Выводим, если текущих занятий не найдено -->
+        <div *ngIf="currentLessons.length == 0" class="d-flex justify-content-center align-items-center flex-column">
+            <h5>В данный момент у вас не проводятся занятия.</h5>
+        </div>
+    
+        <!-- Далее выводим список занятий для старта -->
+        <div *ngIf="lessonsToStart.length == 0 else lessonsToStartIsExists">
+            <!-- <p>Занятий для старта нет</p> -->
+        </div>
+        <ng-template #lessonsToStartIsExists>
+            <div class="lessons" *ngFor="let lesson of lessonsToStart; let i = index">
+                <div (click)="removeLessonFromLessonsStart(lesson)" class="lesson">
+                    <div class="about-lesson">
+                        <div class="item-about-lesson item-about-lesson-time">
+                            {{lesson.start | date: 'HH:mm'}} - {{lesson.end | date: 'HH:mm'}}
+                        </div>
+                        <div *ngIf="lesson.type === 'LectureLesson'" class="item-about-lesson item-about-lesson-type item-about-lesson-type-lecture">
+                            лекция
+                        </div>
+                        <div *ngIf="lesson.type === 'PracticeLesson'" class="item-about-lesson item-about-lesson-type item-about-lesson-type-practice">
+                            практика
+                        </div>
+                        <div *ngIf="lesson.type === 'LabLesson'" class="item-about-lesson item-about-lesson-type item-about-lesson-type-lecture">
+                            лабораторная
+                        </div>
+                        <div *ngIf="currentLessons.includes(lesson)" class="item-about-lesson item-about-lesson-information">
+                            проводится сейчас по расписанию
+                        </div>
+                    </div>
+                    <div class="about-lesson-second">
+                        <h5>{{lesson.subjectName}}</h5>
+                        <a href="teachers">{{lesson.groupName}}</a>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center align-items-center flex-column">
+                <button (click)="startLessons()" mat-raised-button color="warn">Начать</button>
+            </div>
+            <hr />
+        </ng-template>
+    </ng-template>
+    
+    
+    <div *ngIf="!currentLessonsIsLoading" class="d-flex justify-content-center align-items-center flex-column">
+    
+        <h5>Выберите занятия, которые вы хотите провести сейчас</h5>
+        <mat-form-field>
+            <mat-label>Выберите дату</mat-label>
+            <input (dateChange)="onDateChange($event)" matInput [matDatepicker]="picker">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+        
+        <!-- Дата выбрана, тут выводится список занятия за определенную дату -->
+        <div *ngIf="selectedDate != null" class="container">
+            <div *ngIf="lessonsInChosenDay.length > 0; else lessonsInDayIsEmpty">
+                <div class="lessons" *ngFor="let lesson of lessonsInChosenDay; let i = index">
+                    <div (click)="addLessonToLessonsStart(lesson)" class="lesson">
+                        <div class="about-lesson">
+                            <div class="item-about-lesson item-about-lesson-time">
+                                {{lesson.start | date: 'HH:mm'}} - {{lesson.end | date: 'HH:mm'}}
+                            </div>
+                            <div *ngIf="lesson.type === 'LectureLesson'" class="item-about-lesson item-about-lesson-type item-about-lesson-type-lecture">
+                                лекция
+                            </div>
+                            <div *ngIf="lesson.type === 'PracticeLesson'" class="item-about-lesson item-about-lesson-type item-about-lesson-type-practice">
+                                практика
+                            </div>
+                            <div *ngIf="lesson.type === 'LabLesson'" class="item-about-lesson item-about-lesson-type item-about-lesson-type-lecture">
+                                лабораторная
+                            </div>
+                            <div *ngIf="lesson.isStarted" class="item-about-lesson item-about-lesson-information">
+                                проведено
+                            </div>
+                        </div>
+                        <div class="about-lesson-second">
+                            <h5>{{lesson.subjectName}}</h5>
+                            <a href="teachers">{{lesson.groupName}}</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center align-items-center flex-column">
+                    <p style="font-size: 0.8rem;">Кликните на занятие, которое хотите провести сейчас</p>
+                </div>
+            </div>
+            <ng-template #lessonsInDayIsEmpty>
+                <div class="text-center">
+                    Занятий в данный день не проводится
+                </div>
+            </ng-template>
+        </div>
+    </div>    
+</ng-template>

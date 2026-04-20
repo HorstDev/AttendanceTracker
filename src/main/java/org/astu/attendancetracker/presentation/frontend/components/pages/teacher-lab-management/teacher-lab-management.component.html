@@ -1,0 +1,72 @@
+<div class="schedule-container">
+    <div class="schedule-left-side">
+        <div *ngIf="selectedSubject != null else subjectIsNotChosen">
+            <!-- <router-outlet></router-outlet> -->
+
+            <div class="d-flex">
+                <div>
+                    <div style="font-size:1rem; margin-right: 1rem;">Группа: <em>{{selectedSubject.groupName}}</em></div>
+                    <div style="font-size:1rem; margin-right: 1rem;">Дисциплина: <em>{{selectedSubject.name}}</em></div>
+                </div>
+                <button (click)="openDialog()" mat-mini-fab color="warn">
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </div>
+
+            <mat-tab-group class="mb-3" (selectedTabChange)="onTabChange($event)" [(selectedIndex)]="selectedTabIndex">
+                <mat-tab label="Полосы прогресса">
+                    
+                </mat-tab>
+
+                <mat-tab label="Создание ЛР">
+
+                </mat-tab>
+            </mat-tab-group>
+            <router-outlet></router-outlet>
+        </div>
+        <ng-template #subjectIsNotChosen>
+            <div class="d-flex justify-content-center align-items-center flex-column">
+                <h5 class="mt-1">Выберите дисциплину для просмотра лабораторных работ:</h5>
+
+                <mat-form-field style="width:95%; max-width: 40rem; margin-top: 1rem;">
+                    <mat-label>Дисциплины</mat-label>
+                    <mat-select [(ngModel)]="selectedSubject" name="subject" (ngModelChange)="onSubjectChange($event)">
+                      <mat-option *ngFor="let subject of subjects" [value]="subject">
+                        {{ subject.name + " | " + subject.groupName }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+            </div>
+        </ng-template>
+    </div>
+
+    <!-- <div *ngIf="selectedSubject != null" class="schedule-right-side">
+        <div class="navigation-window">
+            <div class="navigation-window-header">
+                <div>
+                    <div style="font-size:1rem; margin: 0;"><em>{{selectedSubject.groupName}}</em></div>
+                    <div style="font-size:0.75rem; margin: 0;"><em>{{selectedSubject.name}}</em></div>
+                </div>
+                <button (click)="openDialog()" mat-mini-fab color="warn">
+                    <mat-icon>edit</mat-icon>
+                </button>
+            </div>
+        
+            <div>
+                <hr />
+                <nav class="flex-column nav-items">
+                    <div class="nav-item">
+                        <a class="nav-link" routerLinkActive="active-link" routerLink="/lab-management/lab-creation/{{selectedSubject.id}}">
+                            <span class="oi oi-media-record" aria-hidden="true" style="color: lightgreen"></span> Создание ЛР
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" routerLinkActive="active-link" routerLink="/lab-management/lab-statuses/{{selectedSubject.id}}">
+                            <span class="oi oi-media-record" aria-hidden="true" style="color: deepskyblue"></span> Полосы прогресса
+                        </a>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div> -->
+</div>

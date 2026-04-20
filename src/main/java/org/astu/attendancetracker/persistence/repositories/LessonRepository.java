@@ -32,7 +32,7 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID> {
     @Query(value = "SELECT l.* FROM lessons l " +
             "JOIN disciplines d ON d.id = l.discipline_id " +
             "JOIN teacher_discipline td ON d.id = td.discipline_id " +
-            "WHERE clock_timestamp() BETWEEN l.start_dt AND l.end_dt " +
+            "WHERE clock_timestamp() BETWEEN l.real_start_dt AND l.real_end_dt " +
             "AND d.semester = (SELECT MAX(d1.semester) FROM disciplines d1 WHERE d1.group_id = d.group_id) " +
             "AND td.teacher_id = :teacherId", nativeQuery = true)
     List<Lesson> findCurrentLessonsForTeacher(@Param("teacherId") UUID teacherId);

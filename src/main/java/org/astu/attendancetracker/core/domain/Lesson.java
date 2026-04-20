@@ -53,4 +53,9 @@ public class Lesson {
             realEndDt = LocalDateTime.now().plusMinutes(90);
         }
     }
+
+    // Досрочное завершение занятия
+    public void stop() {
+        realEndDt = LocalDateTime.now();
+    }
 }

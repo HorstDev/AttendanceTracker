@@ -1,0 +1,68 @@
+<div> 
+    <form (ngSubmit)="submitAddLabWorkForm()">
+
+      <div class="d-flex justify-content-center align-items-center flex-column">
+        <div class="d-flex justify-content-center align-items-center flex-column" style="border: 1px solid #426696; padding: 1rem 1rem;">
+          <h2>Добавление лабораторной</h2>
+          <div class="form-floating mb-1" style="max-width: 8rem;">
+            <input [(ngModel)]="addedLabNumber" type="number" class="form-control" id="addedLabNumber" name="addedLabNumber" required>
+            <label for="addedLabNumber">Номер</label>
+          </div>
+          <div class="form-floating mb-1" style="max-width: 8rem;">
+            <input [(ngModel)]="addedLabRaiting" type="number" class="form-control" id="addedLabRaiting" name="addedLabRaiting" required>
+            <label for="addedLabRaiting">Балл</label>
+          </div>
+  
+          <p style="margin: 0; font-size: 0.8rem;">Привяжите занятия к ЛР:</p>
+          <div class="d-flex mb-2" style="flex-wrap: wrap;">
+            <div *ngFor="let labLesson of labLessons">
+              <div *ngIf="!isCheckboxDisabled(labLesson.id)">
+                <button *ngIf="isCheckboxSelected(labLesson.id) else notSelected" (click)="onCheckboxChange(labLesson.id)" class="selected-lesson">{{labLesson.number + 1}}</button>
+                <ng-template #notSelected>
+                  <button *ngIf="!isCheckboxSelected(labLesson.id)" (click)="onCheckboxChange(labLesson.id)" class="not-selected-lesson">{{labLesson.number + 1}}</button>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="selectedCheckboxIds.length > 0 else noSelectedLessons">
+            <button type="submit" mat-raised-button color="primary">Добавить</button>
+          </div>
+          <ng-template #noSelectedLessons>
+            <button type="submit" mat-raised-button disabled color="primary">Добавить</button>
+          </ng-template>
+
+        </div>
+      </div>
+    </form>
+</div>
+
+<table *ngIf="labWorks.length > 0" class="table">
+  <thead>
+    <tr>
+      <th style="border-bottom: 2px solid #426696;">Номер</th>
+      <th style="border-bottom: 2px solid #426696;">Рейтинг</th>
+      <th style="border-bottom: 2px solid #426696;">Занятия</th>
+      <th style="border-bottom: 2px solid #426696;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let labWork of labWorks">
+      <td style="border-bottom: 1px solid #426696;">{{labWork.number}}</td>
+      <td style="border-bottom: 1px solid #426696;">{{labWork.score}}</td>
+      <td style="border-bottom: 1px solid #426696;">
+        <div style="display:inline" *ngFor="let lesson of labWork.lessons">
+          <button class="selected-lesson">
+            {{lesson.number + 1}} 
+          </button>
+        </div>
+      </td>
+      <td style="border-bottom: 1px solid #426696;">
+        <!-- <button (click)="deleteLabWork(labWork.id)" mat-mini-fab color="warn">
+          <mat-icon>edit</mat-icon>
+      </button> -->
+      <button (click)="deleteLabWork(labWork.id) "type="button" mat-raised-button color="warn">Удалить</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,50 @@
+<div class="navigation-window">
+    <div class="navigation-window-header">
+        <div *ngIf="selectedSubject == null else subjectIsChosen">
+            <p style="font-size:1rem; margin: 0;"><em>Выберите дисциплину</em></p>
+        </div>
+        <ng-template #subjectIsChosen>
+            <div>
+                <div style="font-size:1rem; margin: 0;"><em>{{selectedSubject?.groupName}}</em></div>
+                <div style="font-size:0.75rem; margin: 0;"><em>{{selectedSubject?.name}}</em></div>
+            </div>
+        </ng-template>
+        <button (click)="openDialog()" mat-mini-fab color="warn">
+            <mat-icon>edit</mat-icon>
+        </button>
+    </div>
+
+    <div *ngIf="selectedSubject != null">
+        <hr />
+        <nav class="flex-column nav-items">
+            <div class="nav-item">
+                <a class="nav-link" routerLinkActive="active-link" routerLink="/lab-management/lab-creation">
+                    <span class="oi oi-media-record" aria-hidden="true" style="color: lightgreen"></span> Создание ЛР
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" routerLinkActive="active-link" routerLink="/groups/all">
+                    <span class="oi oi-media-record" aria-hidden="true" style="color: deepskyblue"></span> Полосы прогресса
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" routerLinkActive="active-link" routerLink="/groups/exams">
+                    <span class="oi oi-media-record" aria-hidden="true" style="color: mediumslateblue"></span> Экзамены
+                </a>
+            </div>
+            <div class="nav-item">
+                <a class="nav-link" routerLinkActive="active-link" routerLink="/groups/credits">
+                    <span class="oi oi-media-record" aria-hidden="true" style="color: orange"></span> Зачёты
+                </a>
+            </div>
+
+            <hr />
+
+            <div class="nav-item pt-3">
+                <a class="nav-link" routerLinkActive="active-link" routerLink="groups/about">
+                    <span class="oi oi-bar-chart" aria-hidden="true"></span> О группе
+                </a>
+            </div>
+        </nav>
+    </div>
+</div>

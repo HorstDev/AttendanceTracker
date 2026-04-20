@@ -1,0 +1,93 @@
+<div class="schedule-container">
+    <div class="schedule-left-side">
+        <div class="d-flex justify-content-center align-items-center">
+            <mat-form-field style="margin-right: 0.3rem;" class="example-full-width">
+                <mat-label>Имя пользователя</mat-label>
+                <input [(ngModel)]="substringName" matInput>
+            </mat-form-field>
+            <button style="margin: 1rem 1rem; margin-top: 0;" (click)="setUsersBySubstringName()" mat-fab color="primary">
+                <mat-icon>search</mat-icon>
+            </button>
+        </div>
+
+        <table *ngIf="users.length > 0 else noUsers" class="table">
+            <thead>
+              <tr>
+                <th style="border-bottom: 2px solid black;">Логин</th>
+                <th style="border-bottom: 2px solid black;">Роли</th>
+                <th style="border-bottom: 2px solid black;">Имена</th>
+                <th style="border-bottom: 2px solid black;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td style="border-bottom: 1px solid black;">{{user.email}}</td>
+                <td style="border-bottom: 1px solid black;">
+                    <div *ngFor="let role of user.roles">
+                        <div *ngIf="role.name == 'Student' || role.name == 'Teacher' else admin">
+                            <div *ngIf="role.name == 'Student' else teacher">
+                                Студент
+                            </div>
+                            <ng-template #teacher>
+                                Преподаватель
+                            </ng-template>
+                        </div>
+                        <ng-template #admin>
+                            Администратор
+                        </ng-template>
+                    </div>
+                </td>
+                <td style="border-bottom: 1px solid black;">
+                    <div *ngFor="let profile of user.profiles">
+                        {{profile.name}}
+                    </div>
+                </td>
+                <td style="border-bottom: 1px solid black;">
+                    <button (click)="setUserAsSelected(user)" mat-mini-fab color="primary"><mat-icon>build</mat-icon></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <ng-template #noUsers>
+            <div class="d-flex justify-content-center align-items-center">
+                <h5>Введите имя или часть имени пользователя</h5>
+            </div>
+          </ng-template>
+    </div>
+
+    <div *ngIf="selectedUser != null" class="schedule-right-side">
+        <div class="navigation-window" style="padding-bottom:1rem; position: sticky; top: 0;">
+            <div class="navigation-window-header">
+                <div>
+                    <h5 style="margin: 0;">Аккаунт</h5>
+                </div>
+            </div>
+        
+            <div style="padding: 0rem 0.5rem; font-size: 0.7rem">
+                <hr style="margin-bottom:1rem;"/>
+                <div class="mb-1 d-flex justify-content-center align-items-center flex-column">
+                    <b>{{selectedUser.email}}</b>
+                </div>
+                <div class="d-flex justify-content-center align-items-center flex-column">
+                    <button class="mt-2" (click)="setPasswordResetLink()" mat-raised-button color="primary">Сгенерировать ссылку для смены пароля</button>
+                </div>
+                <div class="mt-2" *ngIf="passwordResetLinkForSelectedUser != null" style="font-size: 0.7rem; overflow-wrap: break-word; word-wrap: break-word;">
+                    <div>
+                        {{passwordResetLinkForSelectedUser}}
+                    </div>
+                    <div class="d-flex justify-content-center align-items-center flex-column" style="color: red">
+                        <b>действие ссылки - 48 часов</b>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center align-items-center flex-column" *ngIf="selectedUserIsAdmin()">
+                    <button (click)="makeSelectedUserNoAdmin()" class="mt-2" mat-raised-button color="accent">Снять роль администратора</button>
+                </div>
+                <div class="d-flex justify-content-center align-items-center flex-column" *ngIf="selectedUserIsTeacher()">
+                    <button *ngIf="!selectedUserIsAdmin()" (click)="makeSelectedUserAnAdmin()" class="mt-2" mat-raised-button color="warn">Назначить администратором</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

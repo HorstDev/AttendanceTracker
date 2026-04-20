@@ -1,0 +1,28 @@
+<table *ngIf="usersLabWorkStatusesData.length > 0 else noStatuses" class="table">
+    <thead>
+      <tr>
+        <!-- <th style="border-bottom: 2px solid black;">Студент</th>
+        <th style="border-bottom: 2px solid black;">Лабораторные работы</th> -->
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let userLabWorkStatuses of usersLabWorkStatusesData">
+        <td style="border-bottom: 1px solid black;">{{userLabWorkStatuses.name}}</td>
+        <td style="border-bottom: 1px solid black;">
+            <div style="display:inline" *ngFor="let labWorkStatus of userLabWorkStatuses.labWorkUserStatuses">
+                <button *ngIf="labWorkStatus.isDone else labWorkIsNotDone" (click)="changeUserLabWorkStatus(labWorkStatus.id)" class="lab-status-done">{{labWorkStatus.number}}</button>
+                <ng-template #labWorkIsNotDone>
+                    <button (click)="changeUserLabWorkStatus(labWorkStatus.id)" class="lab-status-not-done">{{labWorkStatus.number}}</button>
+                </ng-template>
+            </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noStatuses>
+    <div class="d-flex justify-content-center align-items-center flex-column">
+      <h5>Лабораторные работы отсутствуют!</h5>
+    </div>
+  </ng-template>
+  

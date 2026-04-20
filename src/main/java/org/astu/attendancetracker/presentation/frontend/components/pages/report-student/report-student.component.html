@@ -1,0 +1,55 @@
+<div class="d-flex justify-content-center align-items-center flex-column mt-2 mb-3">
+    <h2>Ваша успеваемость:</h2>
+</div>
+
+<table class="table">
+    <thead>
+      <tr>
+        <th style="color: #426696; border-bottom: 2px solid;">Дисциплина</th>
+        <th style="color: #426696; border-bottom: 2px solid;"></th>
+        <th style="color: #426696; border-bottom: 2px solid;">Полосы прогресса (лабораторные работы)</th>
+      </tr>
+    </thead>
+    <tbody *ngFor="let subjectReport of report">
+      <tr>
+        <td style="color: #426696; border-bottom: 2px solid #426696;">{{subjectReport.subjectName}}</td>
+        <td style="color: #426696; border-bottom: 2px solid #426696;">
+            Рейтинг: {{subjectReport.score}}
+            <br/>
+            Пропусков: {{subjectReport.notVisitedLessonCount}}/{{subjectReport.startedLessonCount}}
+        </td>
+        <td style="color: #426696; border-bottom: 2px solid #426696;">
+            <div *ngIf="subjectReport.labWorkUserStatuses.length > 0 else noLabs">
+                <div style="display:inline" *ngFor="let labWorkStatus of subjectReport.labWorkUserStatuses">
+                    <button *ngIf="labWorkStatus.isDone else labWorkIsNotDone" class="lab-status-done">{{labWorkStatus.number}}</button>
+                    <ng-template #labWorkIsNotDone>
+                        <button class="lab-status-not-done">{{labWorkStatus.number}}</button>
+                    </ng-template>
+                </div>
+            </div>
+            <ng-template #noLabs>
+                <p *ngIf="subjectReport.labWorksShouldExist else notShouldExist" style="color: red;">Преподаватель не создал лабораторные работы!</p>
+                <ng-template #notShouldExist>
+                    <p style="color: #426696">Лабораторные работы отсутствуют</p>
+                </ng-template>
+            </ng-template>
+        </td>
+      </tr>
+    </tbody>
+</table>
+
+<div class="d-flex justify-content-center align-items-center flex-column mt-5 mb-3">
+    <h5>Соответствие с сроками выполнения лабораторных работ (на {{currentDate | date:'dd.MM.yyyy'}})</h5>
+</div>
+<div class="mb-3">
+    <div *ngFor="let subjectReport of report">
+        <div *ngIf="subjectReport.labWorkUserStatuses.length > 0">
+            <div *ngIf="meetsDeadline(subjectReport.labWorkUserStatuses, subjectReport.labWorkNumberShouldDone) else noSuccessful">
+                <b style="color: #426696">{{subjectReport.subjectName}}:</b> Работ выполнено: {{lengthOfDoneLabWorks(subjectReport.labWorkUserStatuses)}}. На данный момент должно быть выполнено минимум {{subjectReport.labWorkNumberShouldDone}} - <span class="oi oi-check" style="color: green; font-size: 1rem;" aria-hidden="true"></span>
+            </div>
+            <ng-template #noSuccessful>
+                <b style="color: #426696">{{subjectReport.subjectName}}:</b> Работ выполнено: {{lengthOfDoneLabWorks(subjectReport.labWorkUserStatuses)}}. На данный момент должно быть выполнено минимум {{subjectReport.labWorkNumberShouldDone}} - <span class="oi oi-x" style="color: red; font-size: 1rem;" aria-hidden="true"></span>
+            </ng-template>
+        </div>
+    </div>
+</div>

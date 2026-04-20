@@ -1,0 +1,24 @@
+<div class="d-flex justify-content-center align-items-center flex-column">
+    <h5 class="mt-5">Измените данные для входа</h5>
+
+    <div class="form-floating mt-3">
+        <input [(ngModel)]="email" type="email" class="form-control" id="floatingInput" placeholder="student@astu.org" required>
+        <label for="floatingInput">Новый логин</label>
+    </div>
+    <div class="form-floating mt-3">
+        <input [(ngModel)]="password" type="password" class="form-control" id="floatingPassword" placeholder="Пароль" required>
+        <label for="floatingPassword">Новый пароль</label>
+    </div>
+    <div class="form-floating mt-3">
+        <input [(ngModel)]="confirmPassword" type="password" class="form-control" id="floatingPassword1" placeholder="Пароль" required>
+        <label for="floatingPassword1">Подтвердите пароль</label>
+    </div>
+    <div class="mt-3">
+        <button (click)="changeAccountData()" mat-raised-button color="primary">Изменить</button>
+    </div>
+
+    <div *ngIf="isChanged" class="mt-5 d-flex justify-content-center align-items-center flex-column">
+        <h5>Данные для входа успешно изменены</h5>
+        <button *ngIf="!isLoggedIn()" (click)="goToLoginPage()" class="btn btn-success">Вход</button>
+    </div>
+</div>

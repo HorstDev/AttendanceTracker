@@ -1,0 +1,68 @@
+.oi {
+    width: 1.5rem;
+    font-size: 0.8rem;
+    vertical-align: text-top;
+   /* top: -2px;*/
+}
+
+.navigation-window {
+    background: linear-gradient(to right bottom, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+    box-shadow: 6px 6px 20px rgba(122, 122, 122, 0.212);
+    border-radius: 0.8rem;
+    width: 220px;
+    align-items: start;
+    overflow: hidden;
+}
+
+    .navigation-window hr {
+        margin: 0;
+        font-size: 1px;
+    }
+
+.navigation-window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /*background-color: rgba(255, 255, 255, 0.5);*/
+    padding: 0.8rem 0.8rem;
+}
+
+    .navigation-window-header h5 {
+        margin: 0;
+    }
+
+.nav-link {
+    display: block; /* Установите блочный режим для ссылок */
+    padding: 0.45rem 0.7rem; /* Добавьте отступы вокруг текста ссылок */
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out; /* Плавное изменение цвета фона и текста при наведении */
+}
+
+.nav-items {
+    padding: 15px 15px;
+}
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-bottom: 0.3rem;
+}
+
+    .nav-item:last-of-type {
+        padding-bottom: 0;
+    }
+
+    .nav-item a {
+        color: #658ec6;
+        border-radius: 4px;
+    }
+
+        .nav-item a.active-link {
+            /*background-color: rgba(255,255,255,0.25);*/
+            background-color: rgba(6, 190, 214,0.25);
+            color: #426696;
+        }
+
+        .nav-item a:hover {
+            /* background-color: rgba(255,255,255,0.1);*/
+            background-color: rgba(6, 190, 214,0.1);
+            color: #426696;
+        }

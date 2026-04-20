@@ -1,5 +1,6 @@
 package org.astu.attendancetracker.presentation.viewModels;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,5 +18,6 @@ public class LessonViewModel {
     private LocalDateTime realStart;
     private LocalDateTime realEnd;
     private String type;
+    @JsonProperty("isStarted")
     private boolean isStarted;
 }

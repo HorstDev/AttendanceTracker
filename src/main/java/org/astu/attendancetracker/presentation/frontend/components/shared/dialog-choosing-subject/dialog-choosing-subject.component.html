@@ -1,0 +1,15 @@
+<h2 mat-dialog-title>Выберите дисциплину</h2>
+<mat-dialog-content style="width: 50rem;">
+  <mat-form-field style="width: 100%;">
+    <mat-label>Дисциплины</mat-label>
+    <mat-select [(ngModel)]="selectedSubject" name="subject">
+      <mat-option *ngFor="let subject of subjects" [value]="subject">
+        {{ subject.name + " | " + subject.groupName }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">Закрыть</button>
+  <button mat-button [mat-dialog-close]="selectedSubject" cdkFocusInitial>Выбрать</button>
+</mat-dialog-actions>

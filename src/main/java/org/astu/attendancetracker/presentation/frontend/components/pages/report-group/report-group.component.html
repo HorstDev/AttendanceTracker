@@ -1,0 +1,81 @@
+
+<div *ngIf="groups.length == 0 else groupsIsExists" class="d-flex justify-content-center align-items-center flex-column mt-5">
+    <div *ngIf="userRoles && userRoles.includes('Admin') else curator">
+        <h1>Группы отсутствуют!</h1>
+    </div>
+    <ng-template #curator>
+        <h1>Курируемые группы отсутствуют!</h1>
+    </ng-template>
+</div>
+
+<ng-template #groupsIsExists>
+    <div class="d-flex justify-content-center align-items-center flex-column">
+        <mat-form-field style="width: 20rem;">
+            <mat-label>Группа</mat-label>
+            <mat-select [(ngModel)]="selectedGroup" name="name" (ngModelChange)="onGroupChange($event)">
+              <mat-option *ngFor="let group of groups" [value]="group">
+                {{group.name}}
+              </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <div *ngIf="!selectedGroup && userRoles && userRoles.includes('Admin') else curator" class="d-flex justify-content-center align-items-center flex-column mt-5">
+            <h1>Выберите одну из групп</h1>
+        </div>
+        <ng-template #curator>
+            <div *ngIf="!selectedGroup">
+                <h1>Выберите одну из курируемых групп</h1>
+            </div>
+        </ng-template>
+    </div>
+
+
+    <div *ngIf="report != null">
+        <h5>Отчет по группе {{selectedGroup?.name}}</h5>
+        <div class="d-flex">
+            <div style="margin-right: 1rem;">
+                <p style="margin: 0">Рейтинг, ниже которого подсветить:</p>
+                <div class="d-flex mb-3" style="max-width: 400px;">
+                    <input [(ngModel)]="selectedScore" type="number" class="form-control" placeholder="Рейтинг">
+                </div>
+            </div>
+            <div>
+                <p style="margin: 0">Кол-во пропусков, выше которых подсветить:</p>
+                <div class="d-flex mb-3" style="max-width: 400px;">
+                    <input [(ngModel)]="selectedNotVisitedCount" type="number" class="form-control" placeholder="Кол-во пропусков">
+                </div>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+              <tr>
+                <th style="color: #426696; border-bottom: 2px solid;">Студент</th>
+                <th *ngFor="let subject of report.allSubjects" class="vertical-header" style="color: #426696; border-bottom: 2px solid;">{{subject}}</th>
+              </tr>
+            </thead>
+            <tbody *ngFor="let studentReport of report.studentReports">
+              <tr>
+                <td style="color: #426696; border-bottom: 2px solid #426696;">{{studentReport.studentName}}</td>
+                <td  *ngFor="let subjectInformation of studentReport.subjectsInformationReport" style="color: #426696; border-bottom: 2px solid;">
+                    <div *ngIf="subjectInformation.score >= selectedScore else badScore" style="margin: 0;">
+                        <b style="color: green">Рейтинг: {{subjectInformation.score}}</b>
+                    </div>
+                    <ng-template #badScore>
+                        <p style="margin: 0;"><b style="color: red">Рейтинг: {{subjectInformation.score}}</b></p>
+                    </ng-template>
+
+                    <div *ngIf="subjectInformation.notVisitedLessonCount <= selectedNotVisitedCount else badVisit" style="margin: 0;">
+                        <b style="color: green">Пропусков: {{subjectInformation.notVisitedLessonCount}}/{{subjectInformation.startedLessonCount}}</b>
+                    </div>
+                    <ng-template #badVisit style="margin: 0;">
+                        <p style="margin:0;"><b style="color: red">Пропусков: {{subjectInformation.notVisitedLessonCount}}/{{subjectInformation.startedLessonCount}}</b></p>
+                    </ng-template>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+
+    </div>
+</ng-template>
