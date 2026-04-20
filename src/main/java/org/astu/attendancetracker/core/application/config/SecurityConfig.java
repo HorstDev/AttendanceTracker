@@ -63,7 +63,7 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui.html"};
 
-    private static final String[] STUDENT_LIST_URL = { };
+    private static final String[] STUDENT_LIST_URL = { "/api/v1/lesson/active-lesson-status"};
     private static final String[] TEACHER_LIST_URL = {
             "/api/v1/lesson/**",
     };

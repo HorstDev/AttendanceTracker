@@ -22,6 +22,7 @@ export class TeacherLessonTrackerComponent implements OnInit {
   selectedTabIndex: number = 0;
   lessonStatusIds: string[] = [];
   successQrScannedMessage: string = '';
+  qrScannerError: string = '';
 
   constructor(private _lessonService: LessonService, private snackBar: MatSnackBar) {}
 
@@ -213,7 +214,40 @@ export class TeacherLessonTrackerComponent implements OnInit {
     this.selectedTabIndex = index;
     if (index === 2) {
       this.lessonStatusIds = [];
-      this.successQrScannedMessage = ''
+      this.successQrScannedMessage = '';
+      this.qrScannerError = '';
+    }
+  }
+
+  onCamerasFound(cameras: any[]): void {
+    if (cameras.length === 0) {
+      this.qrScannerError = 'Камеры не обнаружены.';
+    } else {
+      this.qrScannerError = '';
+    }
+  }
+
+  onCamerasNotFound(): void {
+    this.qrScannerError = 'Камеры не обнаружены. Подключите камеру и перезагрузите страницу.';
+  }
+
+  onPermissionResponse(permission: boolean): void {
+    if (!permission) {
+      this.qrScannerError = 'Нет доступа к камере. Разрешите доступ в настройках браузера.';
+    } else {
+      this.qrScannerError = '';
+    }
+  }
+
+  onScanError(error: Error): void {
+    if (error?.name === 'NotReadableError') {
+      this.qrScannerError = 'Камера занята другим приложением или вкладкой браузера. Закройте их и попробуйте снова.';
+    } else if (error?.name === 'NotAllowedError') {
+      this.qrScannerError = 'Нет доступа к камере. Разрешите доступ в настройках браузера.';
+    } else if (error?.name === 'NotFoundError') {
+      this.qrScannerError = 'Камера не найдена.';
+    } else {
+      this.qrScannerError = `Ошибка камеры: ${error?.message ?? 'неизвестная ошибка'}`;
     }
   }
 
