@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -37,8 +39,8 @@ public class Competency {
     @ManyToMany(mappedBy = "competencies")
     private Set<Discipline> disciplines = new HashSet<>();
 
-    @ManyToMany(mappedBy = "curriculumCompetencies")
-    private Set<DisciplineCurriculum> curriculumDisciplines = new HashSet<>();
+    @OneToMany(mappedBy = "competency", fetch = FetchType.LAZY)
+    private List<DisciplineCurriculumCompetency> curriculumCompetencyLinks = new ArrayList<>();
 
     public Competency(String abbreviation, String description) {
         this.abbreviation = abbreviation;

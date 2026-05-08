@@ -44,6 +44,7 @@ public class SecurityConfig {
             "/groups",
             "/students",
             "/teachers",
+            "/competency-weights"
     };
 
     private static final String[] WHITE_LIST_URL = {

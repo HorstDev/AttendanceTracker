@@ -11,15 +11,17 @@ import org.astu.attendancetracker.core.domain.Group;
 import org.astu.attendancetracker.core.domain.TeacherProfile;
 import org.astu.attendancetracker.core.domain.Competency;
 import org.astu.attendancetracker.core.domain.DisciplineCurriculum;
+import org.astu.attendancetracker.core.domain.DisciplineCurriculumCompetency;
 import org.astu.attendancetracker.persistence.repositories.CompetencyRepository;
+import org.astu.attendancetracker.persistence.repositories.DisciplineCurriculumCompetencyRepository;
 import org.astu.attendancetracker.persistence.repositories.DisciplineCurriculumRepository;
 import org.astu.attendancetracker.persistence.repositories.DisciplineRepository;
 import org.astu.attendancetracker.persistence.repositories.GroupRepository;
 import org.astu.attendancetracker.persistence.repositories.ProfileRepository;
 import org.astu.attendancetracker.presentation.mappers.GroupMapper;
 import org.astu.attendancetracker.presentation.services.GroupService;
+import org.astu.attendancetracker.presentation.viewModels.CompetencyWeightMatrixViews;
 import org.astu.attendancetracker.presentation.viewModels.GroupDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class GroupServiceImpl implements GroupService {
@@ -36,12 +39,27 @@ public class GroupServiceImpl implements GroupService {
     private final DisciplineRepository disciplineRepository;
     private final CompetencyRepository competencyRepository;
     private final DisciplineCurriculumRepository disciplineCurriculumRepository;
+    private final DisciplineCurriculumCompetencyRepository disciplineCurriculumCompetencyRepository;
     private final GroupMapper groupMapper;
+
+    private static final double WEIGHT_SUM_EPS = 1e-5;
+    private static final double HUNDREDTH_STEP = 0.01;
+    /** Допуск для проверки «значение кратно 0.01» из-за двоичного представления double */
+    private static final double HUNDREDTH_TOLERANCE = 1e-4;
+
+    private static double roundToHundredths(double w) {
+        return Math.rint(w * 100.0) / 100.0;
+    }
+
+    private static boolean isMultipleOfHundredth(double w) {
+        return Math.abs(w * 100.0 - Math.rint(w * 100.0)) < HUNDREDTH_TOLERANCE;
+    }
 
     public GroupServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
                             GroupRepository groupRepository, DisciplineRepository disciplineRepository,
                             CompetencyRepository competencyRepository,
                             DisciplineCurriculumRepository disciplineCurriculumRepository,
+                            DisciplineCurriculumCompetencyRepository disciplineCurriculumCompetencyRepository,
                             GroupMapper groupMapper) {
         this.scheduleManager = scheduleFetcher;
         this.profileRepository = profileRepository;
@@ -49,6 +67,7 @@ public class GroupServiceImpl implements GroupService {
         this.disciplineRepository = disciplineRepository;
         this.competencyRepository = competencyRepository;
         this.disciplineCurriculumRepository = disciplineCurriculumRepository;
+        this.disciplineCurriculumCompetencyRepository = disciplineCurriculumCompetencyRepository;
         this.groupMapper = groupMapper;
     }
 
@@ -153,10 +172,10 @@ public class GroupServiceImpl implements GroupService {
                 CurriculumAnalyzer.extractCompetenciesWithCurriculumDisciplines(curriculumBytes);
         persistCurriculumExtractions(group, extractions);
 
-        List<DisciplineCurriculum> curriculumDisciplines = disciplineCurriculumRepository.findByGroup_Id(group.getId());
+        List<DisciplineCurriculum> curriculumDisciplines = disciplineCurriculumRepository.findByGroup_IdOrderByNameAsc(group.getId());
         for (Discipline d : allGroupDisciplines) {
             CurriculumAnalyzer.matchScheduleDisciplineToCurriculum(d, curriculumDisciplines)
-                    .ifPresent(cd -> d.getCompetencies().addAll(cd.getCurriculumCompetencies()));
+                    .ifPresent(cd -> d.getCompetencies().addAll(cd.getLinkedCompetencies()));
         }
         disciplineRepository.saveAll(allGroupDisciplines);
         groupRepository.save(group);
@@ -179,10 +198,109 @@ public class GroupServiceImpl implements GroupService {
                 if (name.isEmpty())
                     continue;
                 DisciplineCurriculum dc = curriculumByName.computeIfAbsent(name, n -> new DisciplineCurriculum(n, group));
-                dc.getCurriculumCompetencies().add(competency);
+                boolean alreadyLinked = dc.getCompetencyLinks().stream()
+                        .anyMatch(l -> l.getCompetency().getId().equals(competency.getId()));
+                if (!alreadyLinked)
+                    dc.addCompetencyLink(competency, 0.0);
             }
         }
         disciplineCurriculumRepository.saveAll(curriculumByName.values());
+        assignEqualCompetencyWeightsForGroup(group.getId());
+    }
+
+    private void assignEqualCompetencyWeightsForGroup(UUID groupId) {
+        List<DisciplineCurriculumCompetency> links =
+                disciplineCurriculumCompetencyRepository.findByDisciplineCurriculum_Group_Id(groupId);
+        Map<UUID, List<DisciplineCurriculumCompetency>> byCompetency = links.stream()
+                .collect(Collectors.groupingBy(l -> l.getCompetency().getId()));
+        for (List<DisciplineCurriculumCompetency> list : byCompetency.values()) {
+            if (list.isEmpty())
+                continue;
+            int n = list.size();
+            int baseCents = 100 / n;
+            int remainderCents = 100 % n;
+            for (int i = 0; i < n; i++) {
+                int cents = baseCents + (i < remainderCents ? 1 : 0);
+                list.get(i).setWeight(cents * HUNDREDTH_STEP);
+            }
+        }
+        disciplineCurriculumCompetencyRepository.saveAll(links);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public CompetencyWeightMatrixViews.MatrixDto getCompetencyWeightMatrix(UUID groupId) {
+        findGroupById(groupId);
+        List<Competency> columns = competencyRepository.findByGroup_IdOrderByAbbreviationAsc(groupId);
+        List<DisciplineCurriculum> rowEntities = disciplineCurriculumRepository.findByGroup_IdOrderByNameAsc(groupId);
+
+        Map<UUID, Map<UUID, DisciplineCurriculumCompetency>> linkLookup = new HashMap<>();
+        for (DisciplineCurriculumCompetency link : disciplineCurriculumCompetencyRepository.findAllFetchedByGroupId(groupId)) {
+            linkLookup
+                    .computeIfAbsent(link.getDisciplineCurriculum().getId(), k -> new HashMap<>())
+                    .put(link.getCompetency().getId(), link);
+        }
+
+        List<CompetencyWeightMatrixViews.ColumnDto> columnDtos = columns.stream()
+                .map(c -> new CompetencyWeightMatrixViews.ColumnDto(c.getId(), c.getAbbreviation()))
+                .toList();
+
+        List<CompetencyWeightMatrixViews.RowDto> rowDtos = new ArrayList<>();
+        for (DisciplineCurriculum dc : rowEntities) {
+            List<CompetencyWeightMatrixViews.CellDto> cells = new ArrayList<>();
+            Map<UUID, DisciplineCurriculumCompetency> rowLinks = linkLookup.getOrDefault(dc.getId(), Map.of());
+            for (Competency col : columns) {
+                DisciplineCurriculumCompetency link = rowLinks.get(col.getId());
+                if (link == null)
+                    cells.add(new CompetencyWeightMatrixViews.CellDto(null, false, 0.0));
+                else
+                    cells.add(new CompetencyWeightMatrixViews.CellDto(link.getId(), true, roundToHundredths(link.getWeight())));
+            }
+            rowDtos.add(new CompetencyWeightMatrixViews.RowDto(dc.getId(), dc.getName(), cells));
+        }
+
+        return new CompetencyWeightMatrixViews.MatrixDto(columnDtos, rowDtos);
+    }
+
+    @Override
+    @Transactional
+    public void saveCompetencyWeightMatrix(UUID groupId, List<CompetencyWeightMatrixViews.LinkWeightUpdate> updates) {
+        findGroupById(groupId);
+        List<DisciplineCurriculumCompetency> links =
+                disciplineCurriculumCompetencyRepository.findByDisciplineCurriculum_Group_Id(groupId);
+        Map<UUID, DisciplineCurriculumCompetency> byId = links.stream()
+                .collect(Collectors.toMap(DisciplineCurriculumCompetency::getId, l -> l));
+
+        for (CompetencyWeightMatrixViews.LinkWeightUpdate u : updates) {
+            DisciplineCurriculumCompetency link = byId.get(u.linkId());
+            if (link == null)
+                throw new IllegalArgumentException("Связь не относится к выбранной группе: " + u.linkId());
+            double w = u.weight();
+            if (w < -WEIGHT_SUM_EPS || w > 1.0 + WEIGHT_SUM_EPS)
+                throw new IllegalArgumentException("Вес должен быть в диапазоне [0, 1]");
+            if (!isMultipleOfHundredth(w))
+                throw new IllegalArgumentException("Вес указывается с точностью до сотых (два знака после запятой).");
+            link.setWeight(roundToHundredths(w));
+        }
+
+        Map<UUID, Double> sumByCompetency = new HashMap<>();
+        for (DisciplineCurriculumCompetency link : byId.values()) {
+            sumByCompetency.merge(link.getCompetency().getId(), link.getWeight(), Double::sum);
+        }
+
+        for (Competency c : competencyRepository.findByGroup_IdOrderByAbbreviationAsc(groupId)) {
+            boolean hasLinks = byId.values().stream().anyMatch(l -> l.getCompetency().getId().equals(c.getId()));
+            if (!hasLinks)
+                continue;
+            double sum = sumByCompetency.getOrDefault(c.getId(), 0.0);
+            if (Math.abs(sum - 1.0) > WEIGHT_SUM_EPS)
+                throw new IllegalArgumentException(
+                        "Сумма весов по компетенции «" + c.getAbbreviation()
+                                + "» должна быть равна 1 (сейчас " + String.format(Locale.US, "%.2f", sum)
+                                + "). Заполните матрицу корректно.");
+        }
+
+        disciplineCurriculumCompetencyRepository.saveAll(byId.values());
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)

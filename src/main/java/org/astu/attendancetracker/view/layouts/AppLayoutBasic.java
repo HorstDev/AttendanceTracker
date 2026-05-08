@@ -5,6 +5,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.sidenav.SideNav;
 import com.vaadin.flow.component.sidenav.SideNavItem;
 import org.astu.attendancetracker.view.MainView;
+import org.astu.attendancetracker.view.pages.CompetencyWeightMatrixPage;
 import org.astu.attendancetracker.view.pages.GroupList;
 import org.astu.attendancetracker.view.pages.TeachersList;
 import org.astu.attendancetracker.view.pages.StudentsList;
@@ -26,12 +27,14 @@ public class AppLayoutBasic extends AppLayout {
                 VaadinIcon.USER.create());
         SideNavItem teachersLink = new SideNavItem("Преподаватели", TeachersList.class,
                 VaadinIcon.BOOK.create());
+        SideNavItem weightsLink = new SideNavItem("Веса компетенций", CompetencyWeightMatrixPage.class,
+                VaadinIcon.GRID_BIG.create());
         SideNavItem calendarLink = new SideNavItem("Отчёты",
                 MainView.class, VaadinIcon.CALENDAR.create());
         SideNavItem vaadinLink = new SideNavItem("Vaadin website",
                 "https://vaadin.com", VaadinIcon.VAADIN_H.create());
 
-        nav.addItem(groupsLink, usersLink, teachersLink, calendarLink, vaadinLink);
+        nav.addItem(groupsLink, usersLink, teachersLink, weightsLink, calendarLink, vaadinLink);
 
         return nav;
     }

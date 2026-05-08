@@ -10,5 +10,5 @@ public interface DisciplineCurriculumRepository extends JpaRepository<Discipline
 
     void deleteByGroup_Id(UUID groupId);
 
-    List<DisciplineCurriculum> findByGroup_Id(UUID groupId);
+    List<DisciplineCurriculum> findByGroup_IdOrderByNameAsc(UUID groupId);
 }
