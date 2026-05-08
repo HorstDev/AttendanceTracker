@@ -24,6 +24,10 @@ public class StudentProfile extends Profile {
     @OneToMany(mappedBy = "studentProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<LessonOutcome> lessonOutcomes = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "studentProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<RatingScore> ratingScores = new ArrayList<>();
+
     public StudentProfile(Group group, String name) {
         super(name);
         this.group = group;

@@ -33,6 +33,10 @@ public class Discipline {
     private List<Lesson> lessons = new ArrayList<>();
 
     @JsonIgnore
+    @OneToMany(mappedBy = "discipline", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<RatingScore> ratingScores = new ArrayList<>();
+
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "group_id")
     private Group group;
