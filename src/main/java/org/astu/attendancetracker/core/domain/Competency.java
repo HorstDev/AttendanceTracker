@@ -10,7 +10,13 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "competencies")
+@Table(
+        name = "competencies",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_competency_abbreviation_group",
+                columnNames = {"abbreviation", "group_id"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,17 +25,29 @@ public class Competency {
     @GeneratedValue
     private UUID id;
 
-    @Column(unique = true)
     private String abbreviation;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "group_id")
+    private Group group;
+
     @ManyToMany(mappedBy = "competencies")
     private Set<Discipline> disciplines = new HashSet<>();
+
+    @ManyToMany(mappedBy = "curriculumCompetencies")
+    private Set<DisciplineCurriculum> curriculumDisciplines = new HashSet<>();
 
     public Competency(String abbreviation, String description) {
         this.abbreviation = abbreviation;
         this.description = description;
+    }
+
+    public Competency(String abbreviation, String description, Group group) {
+        this.abbreviation = abbreviation;
+        this.description = description;
+        this.group = group;
     }
 }

@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface CompetencyRepository extends JpaRepository<Competency, UUID> {
     Optional<Competency> findByAbbreviation(String abbreviation);
+
+    Optional<Competency> findByAbbreviationAndGroup_Id(String abbreviation, UUID groupId);
 }

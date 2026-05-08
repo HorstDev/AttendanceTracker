@@ -5,15 +5,16 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.astu.attendancetracker.core.application.common.exceptions.CurriculumReadException;
 import org.astu.attendancetracker.core.domain.Discipline;
+import org.astu.attendancetracker.core.domain.DisciplineCurriculum;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CurriculumAnalyzer {
     // Минимально приемлемый индекс Жаккара для совмещения названий дисциплин по схожести
     private static final double ACCEPTABLE_JACCARD_INDEX = 0.75;
+    private static final DataFormatter CELL_FORMATTER = new DataFormatter();
     private static final int PLAN_PAGE = 3;
     private static final int ROW_START_DISCIPLINES = 5;
     private static final int COLUMN_START_SEMESTERS = 3;
@@ -37,6 +38,9 @@ public class CurriculumAnalyzer {
     private static final int COLUMN_COMPETENCY_DESCRIPTION = 3;
 
     public record CompetencyData(String abbreviation, String description) {}
+
+    /** Компетенция из листа расшифровки и названия дисциплин УП из столбца расшифровки (строки ниже описания). */
+    public record CompetencyExtraction(CompetencyData competency, List<String> curriculumDisciplineNames) {}
 
     public static void uploadInformationForDisciplines(byte[] curriculumBytes, List<Discipline> disciplines) {
 
@@ -136,73 +140,102 @@ public class CurriculumAnalyzer {
         return rowsWithDisciplines;
     }
 
-    // Извлекает компетенции для дисциплин из учебного плана
-    public static Map<Discipline, List<CompetencyData>> extractCompetenciesForDisciplines(
-            byte[] curriculumBytes, List<Discipline> disciplines) {
-
-        if (curriculumBytes == null || disciplines.isEmpty())
+    /**
+     * Извлекает все компетенции с листа расшифровки и дисциплины учебного плана для каждой из них:
+     * дисциплины перечислены в том же столбце, что и расшифровка, начиная со строки ниже описания,
+     * до строки со следующей аббревиатурой компетенции.
+     */
+    public static List<CompetencyExtraction> extractCompetenciesWithCurriculumDisciplines(byte[] curriculumBytes) {
+        if (curriculumBytes == null)
             throw new RuntimeException("Недостаточно данных для извлечения компетенций");
 
         try (ByteArrayInputStream stream = new ByteArrayInputStream(curriculumBytes);
              Workbook workbook = new XSSFWorkbook(stream)) {
-            Sheet planSheet = workbook.getSheetAt(PLAN_PAGE);
-            int semester = disciplines.getFirst().getSemester();
-
-            List<Row> rowsAtSemester = rowsWithDisciplinesAtSemester(planSheet, semester);
-            HashMap<Discipline, Row> disciplinesAndRows = relateRowsWithDisciplines(rowsAtSemester, disciplines);
-
-            // Собираем аббревиатуры компетенций по каждой дисциплине
-            Map<Discipline, List<String>> disciplineToAbbreviations = new HashMap<>();
-            Set<String> allAbbreviations = new HashSet<>();
-
-            for (Map.Entry<Discipline, Row> entry : disciplinesAndRows.entrySet()) {
-                Row row = entry.getValue();
-                if (row == null) continue;
-
-                Cell cell = row.getCell(COLUMN_COMPETENCIES);
-                if (isCellEmpty(cell)) continue;
-
-                List<String> abbreviations = Arrays.stream(cell.getStringCellValue().split(";"))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toList());
-
-                disciplineToAbbreviations.put(entry.getKey(), abbreviations);
-                allAbbreviations.addAll(abbreviations);
-            }
-
-            // Находим описания компетенций на странице расшифровки
-            Map<String, String> abbreviationToDescription = new HashMap<>();
             Sheet competencySheet = workbook.getSheetAt(COMPETENCY_DESCRIPTIONS_PAGE);
+            List<CompetencyExtraction> result = new ArrayList<>();
 
-            for (int i = 0; i <= competencySheet.getLastRowNum(); i++) {
+            int i = 0;
+            int last = competencySheet.getLastRowNum();
+            while (i <= last) {
                 Row row = competencySheet.getRow(i);
-                if (row == null) continue;
-
-                Cell abbreviationCell = row.getCell(COLUMN_COMPETENCY_ABBREVIATION);
-                if (isCellEmpty(abbreviationCell)) continue;
-
-                String abbreviation = abbreviationCell.getStringCellValue().trim();
-                if (allAbbreviations.contains(abbreviation)) {
-                    Cell descriptionCell = row.getCell(COLUMN_COMPETENCY_DESCRIPTION);
-                    String description = isCellEmpty(descriptionCell) ? "" : descriptionCell.getStringCellValue().trim();
-                    abbreviationToDescription.put(abbreviation, description);
+                if (row == null) {
+                    i++;
+                    continue;
                 }
-            }
+                String abbreviation = stringCell(row, COLUMN_COMPETENCY_ABBREVIATION);
+                if (abbreviation.isEmpty()) {
+                    i++;
+                    continue;
+                }
 
-            // Строим итоговый результат: дисциплина → список CompetencyData
-            Map<Discipline, List<CompetencyData>> result = new HashMap<>();
-            for (Map.Entry<Discipline, List<String>> entry : disciplineToAbbreviations.entrySet()) {
-                List<CompetencyData> competencies = entry.getValue().stream()
-                        .map(abbr -> new CompetencyData(abbr, abbreviationToDescription.getOrDefault(abbr, "")))
-                        .collect(Collectors.toList());
-                result.put(entry.getKey(), competencies);
+                String description = stringCell(row, COLUMN_COMPETENCY_DESCRIPTION);
+                List<String> curriculumDisciplineNames = new ArrayList<>();
+                i++;
+                while (i <= last) {
+                    Row nextRow = competencySheet.getRow(i);
+                    if (nextRow == null) {
+                        i++;
+                        continue;
+                    }
+                    String nextAbbreviation = stringCell(nextRow, COLUMN_COMPETENCY_ABBREVIATION);
+                    if (!nextAbbreviation.isEmpty())
+                        break;
+
+                    String disciplineCell = stringCell(nextRow, COLUMN_COMPETENCY_DESCRIPTION);
+                    if (!disciplineCell.isEmpty()) {
+                        for (String part : disciplineCell.split(";")) {
+                            String trimmed = part.trim();
+                            if (!trimmed.isEmpty())
+                                curriculumDisciplineNames.add(trimmed);
+                        }
+                    }
+                    i++;
+                }
+
+                result.add(new CompetencyExtraction(
+                        new CompetencyData(abbreviation, description),
+                        curriculumDisciplineNames));
             }
 
             return result;
         } catch (IOException e) {
             throw new CurriculumReadException("Ошибка при чтении учебного плана");
         }
+    }
+
+    /** Сопоставляет дисциплину из расписания с дисциплиной из учебного плана по максимальному Жаккару (не ниже порога). */
+    public static Optional<DisciplineCurriculum> matchScheduleDisciplineToCurriculum(
+            Discipline scheduleDiscipline, List<DisciplineCurriculum> curriculumDisciplines) {
+        if (curriculumDisciplines == null || curriculumDisciplines.isEmpty())
+            return Optional.empty();
+
+        JaccardSimilarity jaccardSimilarity = new JaccardSimilarity();
+        String disciplineName = scheduleDiscipline.getName().toLowerCase().trim();
+
+        DisciplineCurriculum best = null;
+        double maxSimilarity = 0;
+        for (DisciplineCurriculum cd : curriculumDisciplines) {
+            double similarity = jaccardSimilarity.apply(disciplineName, cd.getName().toLowerCase().trim());
+            if (similarity > maxSimilarity) {
+                maxSimilarity = similarity;
+                best = cd;
+            }
+        }
+        if (maxSimilarity < ACCEPTABLE_JACCARD_INDEX)
+            return Optional.empty();
+        return Optional.ofNullable(best);
+    }
+
+    private static String stringCell(Row row, int columnIndex) {
+        if (row == null)
+            return "";
+        return stringCell(row.getCell(columnIndex));
+    }
+
+    private static String stringCell(Cell cell) {
+        if (isCellEmpty(cell))
+            return "";
+        return CELL_FORMATTER.formatCellValue(cell).trim();
     }
 
     // Устанавливает тип экзамена для дисциплин
