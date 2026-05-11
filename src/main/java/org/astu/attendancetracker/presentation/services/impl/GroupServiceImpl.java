@@ -79,6 +79,21 @@ public class GroupServiceImpl implements GroupService {
         return groupRepository.findAll();
     }
 
+    @Override
+    @Transactional
+    public List<Group> getSupervisedGroupsForTeacher(UUID userId) {
+        return profileRepository.findTeacherProfileByUserIdWithDisciplinesAndGroups(userId)
+                .map(teacher -> teacher.getDisciplines().stream()
+                        .map(Discipline::getGroup)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toMap(Group::getId, g -> g, (a, b) -> a, LinkedHashMap::new))
+                        .values()
+                        .stream()
+                        .sorted(Comparator.comparing(Group::getName, String.CASE_INSENSITIVE_ORDER))
+                        .toList())
+                .orElse(List.of());
+    }
+
     // Возвращает все группы, в которых принимает участие преподаватель в текущем семестре
     public CompletableFuture<HashSet<String>> getAllGroupsForTeacher(String teacherName) {
         return scheduleManager.getGroupsForTeacher(teacherName);

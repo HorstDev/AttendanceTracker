@@ -13,6 +13,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface GroupService {
+    // Группы, в которых преподаватель ведёт дисциплины (текущий семестр по расписанию в БД).
+    List<Group> getSupervisedGroupsForTeacher(UUID userId);
+
     List<Group> getAllGroups();
     Group saveGroup(String groupName);
     Group findGroupById(UUID groupId);

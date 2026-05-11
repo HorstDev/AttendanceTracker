@@ -31,4 +31,7 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
 
     @Query("SELECT s FROM StudentProfile s WHERE s.user.id = :userId")
     Optional<StudentProfile> findStudentProfileByUserId(@Param("userId") UUID userId);
+
+    @Query("SELECT DISTINCT t FROM TeacherProfile t LEFT JOIN FETCH t.disciplines d LEFT JOIN FETCH d.group WHERE t.user.id = :userId")
+    Optional<TeacherProfile> findTeacherProfileByUserIdWithDisciplinesAndGroups(@Param("userId") UUID userId);
 }

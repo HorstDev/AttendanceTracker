@@ -64,10 +64,14 @@ public class SecurityConfig {
             "/webjars/**",
             "/swagger-ui.html"};
 
-    private static final String[] STUDENT_LIST_URL = { "/api/v1/lesson/active-lesson-status"};
+    private static final String[] STUDENT_LIST_URL = {
+            "/api/v1/lesson/active-lesson-status",
+            "/api/v1/Report/student-report",
+    };
     private static final String[] TEACHER_LIST_URL = {
             "/api/v1/lesson/**",
             "/api/v1/discipline/**",
+            "/api/v1/Group/supervised-groups",
     };
     private static final String[] ADMIN_LIST_URL = {
             "/api/v1/demo-controller/**"
@@ -87,6 +91,12 @@ public class SecurityConfig {
 
                         .requestMatchers(STUDENT_LIST_URL)
                         .hasAuthority(Role.STUDENT.name())
+
+                        .requestMatchers("/api/v1/Report/**")
+                        .hasAnyAuthority(Role.TEACHER.name(), Role.ADMIN.name())
+
+                        .requestMatchers("/api/v1/Group/all-groups")
+                        .hasAuthority(Role.ADMIN.name())
 
                         .requestMatchers(TEACHER_LIST_URL)
                         .hasAuthority(Role.TEACHER.name())

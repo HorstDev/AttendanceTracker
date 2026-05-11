@@ -27,4 +27,10 @@ public interface LessonOutcomeRepository extends JpaRepository<LessonOutcome, UU
             "AND clock_timestamp() BETWEEN l.real_start_dt AND l.real_end_dt " +
             "LIMIT 1", nativeQuery = true)
     Optional<LessonOutcome> findActiveOutcomeByStudentId(@Param("studentId") UUID studentId);
+
+    @Query("SELECT COUNT(lo) FROM LessonOutcome lo WHERE lo.studentProfile.id = :studentId AND lo.lesson.discipline.id = :disciplineId AND lo.lesson.isStarted = true")
+    long countStartedForStudentAndDiscipline(@Param("studentId") UUID studentId, @Param("disciplineId") UUID disciplineId);
+
+    @Query("SELECT COUNT(lo) FROM LessonOutcome lo WHERE lo.studentProfile.id = :studentId AND lo.lesson.discipline.id = :disciplineId AND lo.lesson.isStarted = true AND lo.isVisited = false")
+    long countNotVisitedForStudentAndDiscipline(@Param("studentId") UUID studentId, @Param("disciplineId") UUID disciplineId);
 }
