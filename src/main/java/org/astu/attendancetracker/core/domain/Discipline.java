@@ -53,6 +53,10 @@ public class Discipline {
     )
     private Set<Competency> competencies = new HashSet<>();
 
+    @JsonIgnore
+    @OneToOne(mappedBy = "discipline", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private DisciplineImportanceWeights importanceWeights;
+
     public Discipline(String name, int semester) {
         this.name = name;
         this.semester = semester;
