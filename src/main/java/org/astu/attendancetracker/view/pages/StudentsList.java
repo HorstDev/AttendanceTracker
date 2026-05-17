@@ -2,6 +2,7 @@ package org.astu.attendancetracker.view.pages;
 
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.astu.attendancetracker.presentation.services.AuthService;
 import org.astu.attendancetracker.presentation.services.GroupService;
 import org.astu.attendancetracker.presentation.services.ProfileService;
+import org.astu.attendancetracker.presentation.services.RatingScoreService;
 import org.astu.attendancetracker.presentation.viewModels.AuthorizationDto;
 import org.astu.attendancetracker.presentation.viewModels.GroupDto;
 import org.astu.attendancetracker.presentation.viewModels.StudentProfileDto;
@@ -29,6 +31,7 @@ public class StudentsList extends HorizontalLayout {
     private final GroupService groupService;
     private final ProfileService profileService;
     private final AuthService authService;
+    private final RatingScoreService ratingScoreService;
 
     Grid<GroupDto> groupsGrid = new Grid<>();
     GroupDto selectedGroup;
@@ -40,7 +43,12 @@ public class StudentsList extends HorizontalLayout {
     TextField studentNameTextField = new TextField("Имя студента");
     Button addStudentToGroupButton = new Button("Добавить в группу");
 
-    public StudentsList(GroupService groupService, ProfileService profileService, AuthService authService) {
+    public StudentsList(
+            GroupService groupService,
+            ProfileService profileService,
+            AuthService authService,
+            RatingScoreService ratingScoreService
+    ) {
         initGroupsGrid();
         initStudentProfilesGrid();
         initPageComponents();
@@ -48,6 +56,7 @@ public class StudentsList extends HorizontalLayout {
         this.groupService = groupService;
         this.profileService = profileService;
         this.authService = authService;
+        this.ratingScoreService = ratingScoreService;
 
 
         VerticalLayout leftLayout = leftLayout();
@@ -88,7 +97,33 @@ public class StudentsList extends HorizontalLayout {
            }
         });
 
-        layout.add(textForChooseGroup, studentNameTextField, addStudentToGroupButton, studentProfilesGrid);
+        Button awardMaxScoreButton = new Button("Добавить студентам высший балл без задержек");
+        awardMaxScoreButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        awardMaxScoreButton.addClickListener(e -> {
+            try {
+                int created = ratingScoreService.awardMaxScoreWithoutDelayToAllStudents();
+                Notification.show("Проставлено записей: " + created, 5000, Notification.Position.BOTTOM_END);
+            } catch (Exception ex) {
+                Notification.show("Ошибка: " + ex.getMessage(), 7000, Notification.Position.BOTTOM_END);
+                log.error("awardMaxScoreWithoutDelayToAllStudents failed", ex);
+            }
+        });
+
+        Button deleteAllScoresButton = new Button("Удалить все оценки у студентов");
+        deleteAllScoresButton.addClickListener(e -> {
+            try {
+                long deleted = ratingScoreService.deleteAllScores();
+                Notification.show("Удалено записей: " + deleted, 5000, Notification.Position.BOTTOM_END);
+            } catch (Exception ex) {
+                Notification.show("Ошибка: " + ex.getMessage(), 7000, Notification.Position.BOTTOM_END);
+                log.error("deleteAllScores failed", ex);
+            }
+        });
+
+        HorizontalLayout ratingActions = new HorizontalLayout(awardMaxScoreButton, deleteAllScoresButton);
+        ratingActions.setWidthFull();
+
+        layout.add(ratingActions, textForChooseGroup, studentNameTextField, addStudentToGroupButton, studentProfilesGrid);
         return layout;
     }
 

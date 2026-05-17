@@ -29,6 +29,9 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     @Query("SELECT s FROM StudentProfile s WHERE s.group.id = :groupId")
     List<StudentProfile> findStudentProfilesByGroupId(@Param("groupId") UUID groupId);
 
+    @Query("SELECT s FROM StudentProfile s")
+    List<StudentProfile> findAllStudentProfiles();
+
     @Query("SELECT s FROM StudentProfile s WHERE s.user.id = :userId")
     Optional<StudentProfile> findStudentProfileByUserId(@Param("userId") UUID userId);
 
