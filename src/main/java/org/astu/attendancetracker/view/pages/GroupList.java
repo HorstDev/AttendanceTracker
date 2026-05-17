@@ -1,7 +1,7 @@
 package org.astu.attendancetracker.view.pages;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
@@ -54,6 +54,8 @@ public class GroupList extends HorizontalLayout {
         layout.setWidth("50%");
 
         Button buttonToUploadAllTeachers = new Button("Обновить преподавателей");
+        Button buttonToUploadAllTeachersFromJson = new Button("Обновить преподавателей из JSON");
+        buttonToUploadAllTeachersFromJson.addThemeVariants(ButtonVariant.LUMO_ERROR);
         TextField tf = new TextField("Преподаватель, чьи группы показать");
         tf.setWidth("100%");
         Button buttonToUpload = new Button("Показать преподавателей");
@@ -64,22 +66,19 @@ public class GroupList extends HorizontalLayout {
             teacherProfilesGrid.setItems(teacherProfilesWithPartOfName);
         });
 
-        buttonToUploadAllTeachers.addClickListener(event -> {
-            UI ui = UI.getCurrent();
+        buttonToUploadAllTeachers.addClickListener(event -> uploadTeachers(false));
+        buttonToUploadAllTeachersFromJson.addClickListener(event -> uploadTeachers(true));
 
-            try {
-                profileService.uploadAllTeachersFromApiTable().join();
-                Notification.show("Данные о преподавателях обновлены", 7000, Notification.Position.BOTTOM_END);
-            } catch (Exception ex) {
-                Notification.show("Ошибка: " + ex.getMessage(), 7000, Notification.Position.BOTTOM_END);
-            }
-
-        });
+        HorizontalLayout teacherUploadButtons = new HorizontalLayout(
+                buttonToUploadAllTeachers,
+                buttonToUploadAllTeachersFromJson
+        );
+        teacherUploadButtons.setSpacing(true);
 
         initTeachableGroupsGrid();
         layout.add(teachableGroups);
 
-        layout.add(buttonToUploadAllTeachers, tf, buttonToUpload, teacherProfilesGrid, teachableGroups);
+        layout.add(teacherUploadButtons, tf, buttonToUpload, teacherProfilesGrid, teachableGroups);
         return layout;
     }
 
@@ -144,27 +143,17 @@ public class GroupList extends HorizontalLayout {
         groupsInDatabase.setItems(groupService.getAllGroups());
 
         groupsInDatabase.addColumn(new ComponentRenderer<>(group -> {
-            Button semesterButton = new Button("Загрузить семестр", e -> {
-                if (radioGroupWithSemester.getValue() == null) {
-                    Notification.show("Выберите, какой сейчас семестр!");
-                    return;
-                }
-                boolean isEvenSemester = radioGroupWithSemester.getValue().equals("Чётный");
-                try {
-                    int currentSemester = group.currentSemester(isEvenSemester);
-                    CompletableFuture<ApiTableGroupSchedule> scheduleFuture = groupService.getApiTableGroupSchedule(group.getName());
-                    CompletableFuture<Integer> currentWeekFuture = groupService.getCurrentWeekNumber();
-
-                    ApiTableGroupSchedule apiTableGroupSchedule = scheduleFuture.get();
-                    int currentWeek = currentWeekFuture.get();
-                    groupService.uploadSemesterForGroup(group, apiTableGroupSchedule, currentWeek, currentSemester);
-                    Notification.show("Успешно загружен семестр №" + currentSemester + " для группы " + group.getName());
-                } catch (Exception ex) {
-                    Notification.show(ex.getMessage());
-                }
-            });
+            Button semesterButton = new Button("Загрузить семестр", e -> uploadSemester(group, false));
             semesterButton.getStyle().set("margin", "0").set("padding", "0 var(--lumo-space-s)");
-            return semesterButton;
+
+            Button jsonSemesterButton = new Button("JSON", e -> uploadSemester(group, true));
+            jsonSemesterButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            jsonSemesterButton.getStyle().set("margin", "0").set("padding", "0 var(--lumo-space-s)");
+
+            HorizontalLayout semesterActions = new HorizontalLayout(semesterButton, jsonSemesterButton);
+            semesterActions.setSpacing(true);
+            semesterActions.setPadding(false);
+            return semesterActions;
         })).setHeader("Семестр").setFlexGrow(0).setAutoWidth(true);
 
         groupsInDatabase.addColumn(new ComponentRenderer<>(group -> {
@@ -194,5 +183,39 @@ public class GroupList extends HorizontalLayout {
             });
             return upload;
         })).setHeader("Загрузить план").setFlexGrow(0).setAutoWidth(true);
+    }
+
+    private void uploadTeachers(boolean fromClasspathJson) {
+        try {
+            if (fromClasspathJson) {
+                profileService.uploadAllTeachersFromClasspathJson().join();
+            } else {
+                profileService.uploadAllTeachersFromApiTable().join();
+            }
+            Notification.show("Данные о преподавателях обновлены", 7000, Notification.Position.BOTTOM_END);
+        } catch (Exception ex) {
+            Notification.show("Ошибка: " + ex.getMessage(), 7000, Notification.Position.BOTTOM_END);
+        }
+    }
+
+    private void uploadSemester(Group group, boolean fromClasspathJson) {
+        if (radioGroupWithSemester.getValue() == null) {
+            Notification.show("Выберите, какой сейчас семестр!");
+            return;
+        }
+        boolean isEvenSemester = radioGroupWithSemester.getValue().equals("Чётный");
+        try {
+            int currentSemester = group.currentSemester(isEvenSemester);
+            ApiTableGroupSchedule apiTableGroupSchedule = fromClasspathJson
+                    ? groupService.getApiTableGroupScheduleFromClasspathJson()
+                    : groupService.getApiTableGroupSchedule(group.getName()).get();
+            int currentWeek = fromClasspathJson
+                    ? groupService.getCurrentWeekNumberFromClasspathJson()
+                    : groupService.getCurrentWeekNumber().get();
+            groupService.uploadSemesterForGroup(group, apiTableGroupSchedule, currentWeek, currentSemester);
+            Notification.show("Успешно загружен семестр №" + currentSemester + " для группы " + group.getName());
+        } catch (Exception ex) {
+            Notification.show(ex.getMessage());
+        }
     }
 }

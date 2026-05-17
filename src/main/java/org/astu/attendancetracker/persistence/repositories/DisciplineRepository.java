@@ -24,5 +24,14 @@ public interface DisciplineRepository extends JpaRepository<Discipline, UUID> {
             "(SELECT MAX(d2.semester) FROM Discipline d2 WHERE d2.group.id = :groupId)")
     List<Discipline> findByGroupInCurrentSemester(UUID groupId);
 
+    @Query("""
+            SELECT DISTINCT d FROM Discipline d
+            LEFT JOIN FETCH d.competencies
+            WHERE d.group.id = :groupId AND d.semester = (
+                SELECT MAX(d2.semester) FROM Discipline d2 WHERE d2.group.id = :groupId
+            )
+            """)
+    List<Discipline> findByGroupInCurrentSemesterWithCompetencies(@Param("groupId") UUID groupId);
+
     List<Discipline> findByGroup(Group group);
 }

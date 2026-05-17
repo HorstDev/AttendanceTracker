@@ -20,7 +20,11 @@ public interface GroupService {
     Group saveGroup(String groupName);
     Group findGroupById(UUID groupId);
     CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName);
+
+    ApiTableGroupSchedule getApiTableGroupScheduleFromClasspathJson();
     CompletableFuture<Integer> getCurrentWeekNumber();
+
+    int getCurrentWeekNumberFromClasspathJson();
     void uploadSemesterForGroup(Group group, ApiTableGroupSchedule apiTableGroupSchedule,
                                  int currentWeekNumber, int currentSemester);
     GroupBuilder groupBuilder();

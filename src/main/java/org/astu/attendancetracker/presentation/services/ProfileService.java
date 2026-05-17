@@ -14,6 +14,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ProfileService {
     CompletableFuture<Void> uploadAllTeachersFromApiTable();
+
+    CompletableFuture<Void> uploadAllTeachersFromClasspathJson();
     List<TeacherProfile> getAllTeachers();
     List<TeacherProfileDto> getTeachersWithPartOfName(String partOfName);
     StudentProfileDto addStudentToGroup(UUID groupId, String studentName);

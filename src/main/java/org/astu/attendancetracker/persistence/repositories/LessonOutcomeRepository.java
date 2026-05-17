@@ -33,4 +33,10 @@ public interface LessonOutcomeRepository extends JpaRepository<LessonOutcome, UU
 
     @Query("SELECT COUNT(lo) FROM LessonOutcome lo WHERE lo.studentProfile.id = :studentId AND lo.lesson.discipline.id = :disciplineId AND lo.lesson.isStarted = true AND lo.isVisited = false")
     long countNotVisitedForStudentAndDiscipline(@Param("studentId") UUID studentId, @Param("disciplineId") UUID disciplineId);
+
+    @Query("""
+            SELECT COUNT(DISTINCT lo.lesson.id) FROM LessonOutcome lo
+            WHERE lo.lesson.discipline.id = :disciplineId AND lo.lesson.isStarted = true
+            """)
+    long countConductedLessonsForDiscipline(@Param("disciplineId") UUID disciplineId);
 }

@@ -226,6 +226,11 @@ public class CurriculumAnalyzer {
         return Optional.ofNullable(best);
     }
 
+    public static double jaccardNameSimilarity(String leftName, String rightName) {
+        JaccardSimilarity jaccardSimilarity = new JaccardSimilarity();
+        return jaccardSimilarity.apply(leftName.toLowerCase().trim(), rightName.toLowerCase().trim());
+    }
+
     private static String stringCell(Row row, int columnIndex) {
         if (row == null)
             return "";

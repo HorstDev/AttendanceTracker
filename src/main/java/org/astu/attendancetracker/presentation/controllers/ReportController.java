@@ -38,4 +38,10 @@ public class ReportController {
     public ReportDtos.GroupReportDto groupReport(@PathVariable UUID groupId) {
         return reportService.getGroupReport(groupId, authService.getCurrentUserId());
     }
+
+    @Operation(summary = "Отчёт по группе: освоение компетенций (таблица студент × компетенции)")
+    @GetMapping("{groupId}/competency-mastery")
+    public ReportDtos.GroupCompetencyReportDto groupCompetencyMasteryReport(@PathVariable UUID groupId) {
+        return reportService.getGroupCompetencyMasteryReport(groupId, authService.getCurrentUserId());
+    }
 }

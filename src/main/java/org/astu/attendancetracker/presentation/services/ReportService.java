@@ -9,5 +9,7 @@ public interface ReportService {
 
     ReportDtos.GroupReportDto getGroupReport(UUID groupId, UUID currentUserId);
 
+    ReportDtos.GroupCompetencyReportDto getGroupCompetencyMasteryReport(UUID groupId, UUID currentUserId);
+
     List<ReportDtos.StudentSubjectReportDto> getStudentSelfReport(UUID currentUserId);
 }

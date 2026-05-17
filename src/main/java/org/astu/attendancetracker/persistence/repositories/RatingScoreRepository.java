@@ -16,4 +16,14 @@ public interface RatingScoreRepository extends JpaRepository<RatingScore, UUID> 
     @Modifying
     @Query("DELETE FROM RatingScore r WHERE r.studentProfile.id = :studentId AND r.discipline.id = :disciplineId")
     void deleteByStudentProfile_IdAndDiscipline_Id(@Param("studentId") UUID studentId, @Param("disciplineId") UUID disciplineId);
+
+    @Query("""
+            SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM RatingScore r
+            WHERE r.studentProfile.id = :studentId AND r.discipline.id = :disciplineId
+            AND r.awardedDate IS NOT NULL AND r.deadlineDate IS NOT NULL AND r.awardedDate > r.deadlineDate
+            """)
+    boolean hasLateSubmissionForStudentAndDiscipline(
+            @Param("studentId") UUID studentId,
+            @Param("disciplineId") UUID disciplineId
+    );
 }

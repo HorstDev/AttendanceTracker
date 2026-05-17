@@ -1,0 +1,211 @@
+{
+  "lessons": [
+    {
+      "entries": [
+        {
+          "teacher": "доц. Лаптев В.В.",
+          "audience": "7.210",
+          "discipline": "Сетевые приложения",
+          "type": "lecture"
+        }
+      ],
+      "dayId": 0,
+      "lessonOrderId": 2
+    },
+    {
+      "entries": [
+        {
+          "teacher": "асс. Ягафаров Т.Р.",
+          "audience": "7.215",
+          "discipline": "Сетевые приложения",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 0,
+      "lessonOrderId": 3
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Учаев Д.Ю.",
+          "audience": "гл.420",
+          "discipline": "Организационные методы защиты информации",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 1,
+      "lessonOrderId": 0
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Лаптев В.В.",
+          "audience": "7.210",
+          "discipline": "Разработка мобильных приложений для android",
+          "type": "lecture"
+        }
+      ],
+      "dayId": 7,
+      "lessonOrderId": 3
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Белов С.В.",
+          "audience": "гл.426",
+          "discipline": "Параллельное программирование",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 7,
+      "lessonOrderId": 4
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Белов С.В.",
+          "audience": "гл.422",
+          "discipline": "Параллельное программирование",
+          "type": "lecture"
+        }
+      ],
+      "dayId": 2,
+      "lessonOrderId": 0
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Давидюк Н.В.",
+          "audience": "гл.231",
+          "discipline": "Защита информации",
+          "type": "lecture"
+        }
+      ],
+      "dayId": 2,
+      "lessonOrderId": 1
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Белов С.В.",
+          "audience": "гл.420",
+          "discipline": "Параллельное программирование",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 2,
+      "lessonOrderId": 2
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Давидюк Н.В.",
+          "audience": "7.210",
+          "discipline": "Организационные методы защиты информации",
+          "type": "lecture"
+        }
+      ],
+      "dayId": 8,
+      "lessonOrderId": 2
+    },
+    {
+      "entries": [
+        {
+          "teacher": "асс. Ягафаров Т.Р.",
+          "audience": "7.215",
+          "discipline": "Сетевые приложения",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 8,
+      "lessonOrderId": 3
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Лаптев В.В.",
+          "audience": "7.215",
+          "discipline": "Разработка мобильных приложений для android",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 3,
+      "lessonOrderId": 4
+    },
+    {
+      "entries": [
+        {
+          "teacher": "асс. Савоськин И.А.",
+          "audience": "7.313",
+          "discipline": "Защита информации",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 3,
+      "lessonOrderId": 5
+    },
+    {
+      "entries": [
+        {
+          "teacher": "каф. АСОИУ",
+          "audience": "1.000",
+          "discipline": "Самостоятельная работа студента",
+          "type": "practice"
+        }
+      ],
+      "dayId": 10,
+      "lessonOrderId": 0
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Морозов А.В.",
+          "audience": "7.115",
+          "discipline": "Проектирование и архитектура программных систем",
+          "type": "lecture"
+        }
+      ],
+      "dayId": 5,
+      "lessonOrderId": 0
+    },
+    {
+      "entries": [
+        {
+          "teacher": "каф. АСОИУ",
+          "audience": "гл.103",
+          "discipline": "Самостоятельная работа студента",
+          "type": "practice"
+        }
+      ],
+      "dayId": 5,
+      "lessonOrderId": 1
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Морозов А.В.",
+          "audience": "7.313",
+          "discipline": "Проектирование и архитектура программных систем",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 11,
+      "lessonOrderId": 3
+    },
+    {
+      "entries": [
+        {
+          "teacher": "доц. Морозов А.В.",
+          "audience": "7.315",
+          "discipline": "Проектирование и архитектура программных систем",
+          "type": "laboratory"
+        }
+      ],
+      "dayId": 11,
+      "lessonOrderId": 4
+    }
+  ],
+  "id": "68dfbaaf777a7d2c47c389a9",
+  "name": "ДИПРБ-41/1",
+  "type": "group"
+}

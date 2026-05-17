@@ -49,4 +49,22 @@ public final class ReportDtos {
             boolean labWorksShouldExist
     ) {
     }
+
+    public record CompetencyInformationReportDto(
+            String competencyAbbreviation,
+            double masteryPercent
+    ) {
+    }
+
+    public record StudentCompetencyReportDto(
+            String studentName,
+            List<CompetencyInformationReportDto> competenciesInformationReport
+    ) {
+    }
+
+    public record GroupCompetencyReportDto(
+            List<String> allCompetencies,
+            List<StudentCompetencyReportDto> studentReports
+    ) {
+    }
 }

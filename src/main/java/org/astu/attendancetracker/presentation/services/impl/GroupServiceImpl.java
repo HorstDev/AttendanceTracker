@@ -3,6 +3,7 @@ package org.astu.attendancetracker.presentation.services.impl;
 import jakarta.transaction.Transactional;
 import org.astu.attendancetracker.core.application.CurriculumAnalyzer;
 import org.astu.attendancetracker.core.application.common.dto.apitable.ApiTableGroupSchedule;
+import org.astu.attendancetracker.core.application.schedule.ClasspathApiTableReader;
 import org.astu.attendancetracker.core.application.schedule.GroupBuilder;
 import org.astu.attendancetracker.core.application.schedule.ScheduleManager;
 import org.astu.attendancetracker.core.application.schedule.impl.GroupBuilderImpl;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 @Service
 public class GroupServiceImpl implements GroupService {
     private final ScheduleManager scheduleManager;
+    private final ClasspathApiTableReader classpathApiTableReader;
     private final ProfileRepository profileRepository;
     private final GroupRepository groupRepository;
     private final DisciplineRepository disciplineRepository;
@@ -55,13 +58,16 @@ public class GroupServiceImpl implements GroupService {
         return Math.abs(w * 100.0 - Math.rint(w * 100.0)) < HUNDREDTH_TOLERANCE;
     }
 
-    public GroupServiceImpl(ScheduleManager scheduleFetcher, ProfileRepository profileRepository,
+    public GroupServiceImpl(ScheduleManager scheduleFetcher,
+                            ClasspathApiTableReader classpathApiTableReader,
+                            ProfileRepository profileRepository,
                             GroupRepository groupRepository, DisciplineRepository disciplineRepository,
                             CompetencyRepository competencyRepository,
                             DisciplineCurriculumRepository disciplineCurriculumRepository,
                             DisciplineCurriculumCompetencyRepository disciplineCurriculumCompetencyRepository,
                             GroupMapper groupMapper) {
         this.scheduleManager = scheduleFetcher;
+        this.classpathApiTableReader = classpathApiTableReader;
         this.profileRepository = profileRepository;
         this.groupRepository = groupRepository;
         this.disciplineRepository = disciplineRepository;
@@ -73,6 +79,15 @@ public class GroupServiceImpl implements GroupService {
 
     public CompletableFuture<ApiTableGroupSchedule> getApiTableGroupSchedule(String groupName) {
         return scheduleManager.getGroupSchedule(groupName);
+    }
+
+    @Override
+    public ApiTableGroupSchedule getApiTableGroupScheduleFromClasspathJson() {
+        try {
+            return classpathApiTableReader.readGroupSchedule();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Не удалось прочитать " + ClasspathApiTableReader.GROUP_SCHEDULE_RESOURCE, e);
+        }
     }
 
     public List<Group> getAllGroups() {
@@ -116,6 +131,15 @@ public class GroupServiceImpl implements GroupService {
     @Cacheable(value = "schedule", key = "'current-week-number'")
     public CompletableFuture<Integer> getCurrentWeekNumber() {
         return scheduleManager.getCurrentWeekNumber();
+    }
+
+    @Override
+    public int getCurrentWeekNumberFromClasspathJson() {
+        try {
+            return classpathApiTableReader.readCurrentWeekNumber();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Не удалось прочитать weekOverride из " + ClasspathApiTableReader.TEACHERS_RESOURCE, e);
+        }
     }
 
     // Загрузка семестра для группы (дисциплины, преподаватели, занятия и т.д.)
